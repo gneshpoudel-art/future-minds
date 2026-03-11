@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
@@ -97,11 +97,18 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground font-sans;
     font-family: 'Poppins', sans-serif;
   }
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Poppins', sans-serif;
   }
 }
@@ -110,34 +117,42 @@
   .gradient-primary {
     background: var(--gradient-primary);
   }
+
   .gradient-hero {
     background: var(--gradient-hero);
   }
+
   .gradient-accent {
     background: var(--gradient-accent);
   }
+
   .gradient-text {
     background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
   .glass {
     background: var(--glass-bg);
     backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
   }
+
   .glass-strong {
     background: hsl(0 0% 100% / 0.85);
     backdrop-filter: blur(24px);
     border: 1px solid hsl(0 0% 100% / 0.4);
   }
+
   .shadow-card {
     box-shadow: var(--shadow-card);
   }
+
   .shadow-elevated {
     box-shadow: var(--shadow-elevated);
   }
+
   .text-balance {
     text-wrap: balance;
   }
@@ -147,13 +162,16 @@
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: hsl(var(--muted));
 }
+
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--primary) / 0.3);
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--primary) / 0.5);
 }
@@ -165,12 +183,19 @@ html {
 
 /* Infinite horizontal scroll for partner logos */
 @keyframes scrollX {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
 }
+
 .animate-scroll-x {
   animation: scrollX 30s linear infinite;
 }
+
 .animate-scroll-x:hover {
   animation-play-state: paused;
 }
