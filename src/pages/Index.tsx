@@ -10,14 +10,21 @@ import SectionHeading from "@/components/SectionHeading";
 import ServiceCard from "@/components/ServiceCard";
 import TestimonialSlider from "@/components/TestimonialSlider";
 import GalleryCarousel from "@/components/GalleryCarousel";
+import {
+  getStatistics,
+  getWhyChooseUs,
+  getServices,
+  getPartners,
+  getBranches
+} from "@/lib/api";
 
 // Map icon name strings from DB to Lucide components
-const iconMap: Record<string, React.FC<{ className?: string }>> = {
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Users, GraduationCap, Globe, Award, Compass, FileCheck, BookOpen,
   DollarSign, MapPin, CheckCircle, Star, HelpCircle, Zap, Shield,
 };
 
-function getIcon(name: string): React.FC<{ className?: string }> {
+function getIcon(name: string): React.ComponentType<{ className?: string }> {
   return iconMap[name] || CheckCircle;
 }
 
@@ -61,7 +68,6 @@ function AnimatedNum({ end, suffix, label, Icon }: { end: number; suffix: string
     </div>
   );
 }
-
 const Index = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
@@ -75,11 +81,11 @@ const Index = () => {
   const [branches, setBranches] = useState<Branch[]>([]);
 
   useEffect(() => {
-    fetch("/api/statistics").then(r => r.ok ? r.json() : []).then(setStats).catch(() => { });
-    fetch("/api/why-choose-us").then(r => r.ok ? r.json() : []).then(setWhyUs).catch(() => { });
-    fetch("/api/services").then(r => r.ok ? r.json() : []).then(setServices).catch(() => { });
-    fetch("/api/partners").then(r => r.ok ? r.json() : []).then(setPartners).catch(() => { });
-    fetch("/api/branches").then(r => r.ok ? r.json() : []).then(setBranches).catch(() => { });
+    getStatistics().then(setStats).catch(() => { });
+    getWhyChooseUs().then(setWhyUs).catch(() => { });
+    getServices().then(setServices).catch(() => { });
+    getPartners().then(setPartners).catch(() => { });
+    getBranches().then(setBranches).catch(() => { });
   }, []);
 
   return (

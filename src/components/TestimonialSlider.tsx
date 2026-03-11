@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getTestimonials, submitTestimonial } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Quote, Send, X, User } from "lucide-react";
 
@@ -20,8 +21,7 @@ const TestimonialSlider = () => {
   const [form, setForm] = useState({ name: "", university: "", message: "", photo: null as File | null });
 
   useEffect(() => {
-    fetch("/api/testimonials")
-      .then(r => r.ok ? r.json() : [])
+    getTestimonials()
       .then(data => setTestimonials(data))
       .catch(() => { });
   }, []);
@@ -52,16 +52,15 @@ const TestimonialSlider = () => {
       fd.append("message", form.message);
       if (form.photo) fd.append("photo", form.photo);
 
-      const res = await fetch("/api/testimonials", { method: "POST", body: fd });
-      if (res.ok) {
+      const res = await submitTestimonial(fd);
+      if (res.id) { // Assuming success if ID is returned
         setSubmitted(true);
         setForm({ name: "", university: "", message: "", photo: null });
       } else {
-        const data = await res.json();
-        setFormError(data.error || (data.errors?.[0]?.msg) || "Submission failed. Please try again.");
+        setFormError(res.error || "Failed to submit testimonial.");
       }
-    } catch {
-      setFormError("Network error. Please check your connection and try again.");
+    } catch (err) {
+      setFormError("Connection error. Please try again.");
     } finally {
       setSubmitting(false);
     }
