@@ -13,12 +13,12 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net", "fonts.googleapis.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net", "fonts.googleapis.com", "translate.google.com", "translate.googleapis.com"],
             scriptSrcAttr: ["'unsafe-inline'"],
             styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "blob:", "https:", "http:"],
             fontSrc: ["'self'", "fonts.gstatic.com", "data:"],
-            connectSrc: ["'self'", "http://localhost:4000", "https://images.unsplash.com"],
+            connectSrc: ["'self'", "https:", "http://localhost:4000", "http://localhost:8080"],
         },
     },
 }));
