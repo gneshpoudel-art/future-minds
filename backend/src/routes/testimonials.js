@@ -1,7 +1,8 @@
 const router = require('express').Router();
 const db = require('../db/client');
 const { authMiddleware } = require('../middleware/auth');
-const { imageUpload, getFileUrl } = require('../middleware/upload');
+const { imageUpload } = require('../middleware/upload');
+const { uploadToSupabase } = require('../utils/supabaseStorage');
 const { body, validationResult } = require('express-validator');
 
 // Public: get approved testimonials
@@ -22,16 +23,19 @@ router.post('/', imageUpload.single('photo'), [
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
         const { name, university, message } = req.body;
-        const photo_url = req.file ? getFileUrl(req, req.file.filename, 'images') : null;
+        let photo_url = null;
+        if (req.file) {
+            photo_url = await uploadToSupabase(req.file.buffer, req.file.originalname, req.file.mimetype, 'images');
+        }
         await db.run(
             "INSERT INTO testimonials (name, university, message, photo_url, status) VALUES (?,?,?,?,'pending')",
             [name, university || '', message, photo_url]
         );
-        res.status(201).json({ message: 'Testimonial submitted successfully. It will appear after review.' });
+        res.status(201).json({ id: Date.now(), message: 'Testimonial submitted successfully. It will appear after review.' });
     } catch (err) { res.status(500).json({ error: 'Failed to submit testimonial' }); }
 });
 
-// Admin: get all testimonials (filtered by status)
+// Admin: get all testimonials
 router.get('/admin/all', authMiddleware, async (req, res) => {
     try {
         const { status } = req.query;

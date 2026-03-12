@@ -1,8 +1,8 @@
 const router = require('express').Router();
 const db = require('../db/client');
 const { authMiddleware } = require('../middleware/auth');
-const { fileUpload, getFileUrl } = require('../middleware/upload');
-const fs = require('fs');
+const { fileUpload } = require('../middleware/upload');
+const { uploadToSupabase, deleteFromSupabase } = require('../utils/supabaseStorage');
 const path = require('path');
 
 router.get('/', async (req, res) => {
@@ -26,9 +26,14 @@ router.post('/', authMiddleware, fileUpload.single('file'), async (req, res) => 
         if (!req.file && !req.body.file_url) return res.status(400).json({ error: 'file or file_url required' });
         const { title } = req.body;
         if (!title) return res.status(400).json({ error: 'title required' });
-        const file_url = req.file ? getFileUrl(req, req.file.filename, 'files') : req.body.file_url;
-        const file_type = req.file ? path.extname(req.file.originalname).replace('.', '') : 'link';
-        const file_size = req.file ? req.file.size : null;
+        let file_url = req.body.file_url || null;
+        let file_type = 'link';
+        let file_size = null;
+        if (req.file) {
+            file_url = await uploadToSupabase(req.file.buffer, req.file.originalname, req.file.mimetype, 'files');
+            file_type = path.extname(req.file.originalname).replace('.', '');
+            file_size = req.file.size;
+        }
         const result = await db.run(
             'INSERT INTO downloads (title, file_url, file_type, file_size) VALUES (?,?,?,?)',
             [title, file_url, file_type, file_size]
@@ -48,10 +53,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
 router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const item = await db.get('SELECT file_url FROM downloads WHERE id = ?', [req.params.id]);
-        if (item && item.file_url && item.file_url.includes('/uploads/')) {
-            const file = path.join(process.cwd(), process.env.UPLOAD_DIR || './uploads', 'files', path.basename(item.file_url));
-            if (fs.existsSync(file)) fs.unlinkSync(file);
-        }
+        if (item?.file_url) await deleteFromSupabase(item.file_url);
         await db.run('DELETE FROM downloads WHERE id = ?', [req.params.id]);
         res.json({ message: 'Deleted' });
     } catch (err) { res.status(500).json({ error: 'Failed to delete' }); }

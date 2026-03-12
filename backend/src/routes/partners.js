@@ -1,10 +1,8 @@
 const router = require('express').Router();
 const db = require('../db/client');
 const { authMiddleware } = require('../middleware/auth');
-const { imageUpload, getFileUrl } = require('../middleware/upload');
-const { body, validationResult } = require('express-validator');
-const fs = require('fs');
-const path = require('path');
+const { imageUpload } = require('../middleware/upload');
+const { uploadToSupabase, deleteFromSupabase } = require('../utils/supabaseStorage');
 
 router.get('/', async (req, res) => {
     try {
@@ -17,13 +15,14 @@ router.post('/', authMiddleware, imageUpload.single('logo'), async (req, res) =>
     try {
         const { university_name, website_link, display_order } = req.body;
         if (!university_name) return res.status(400).json({ error: 'university_name is required' });
-        const logo_url = req.file ? getFileUrl(req, req.file.filename, 'images') : null;
+        const logo_url = req.file
+            ? await uploadToSupabase(req.file.buffer, req.file.originalname, req.file.mimetype, 'images')
+            : null;
         const result = await db.run(
             'INSERT INTO partners (university_name, logo_url, website_link, display_order) VALUES (?,?,?,?)',
             [university_name, logo_url, website_link || '', parseInt(display_order) || 0]
         );
-        const item = await db.get('SELECT * FROM partners WHERE id = ?', [result.lastInsertRowid]);
-        res.status(201).json(item);
+        res.status(201).json(await db.get('SELECT * FROM partners WHERE id = ?', [result.lastInsertRowid]));
     } catch (err) { res.status(500).json({ error: 'Failed to create partner' }); }
 });
 
@@ -32,30 +31,22 @@ router.put('/:id', authMiddleware, imageUpload.single('logo'), async (req, res) 
         const { university_name, website_link, display_order } = req.body;
         let logo_url = null;
         if (req.file) {
-            logo_url = getFileUrl(req, req.file.filename, 'images');
-            // Delete old logo
             const old = await db.get('SELECT logo_url FROM partners WHERE id = ?', [req.params.id]);
-            if (old && old.logo_url && old.logo_url.includes('/uploads/')) {
-                const oldFile = path.join(process.cwd(), process.env.UPLOAD_DIR || './uploads', 'images', path.basename(old.logo_url));
-                if (fs.existsSync(oldFile)) fs.unlinkSync(oldFile);
-            }
+            if (old?.logo_url) await deleteFromSupabase(old.logo_url);
+            logo_url = await uploadToSupabase(req.file.buffer, req.file.originalname, req.file.mimetype, 'images');
         }
         await db.run(
             'UPDATE partners SET university_name=COALESCE(?,university_name), logo_url=COALESCE(?,logo_url), website_link=COALESCE(?,website_link), display_order=COALESCE(?,display_order) WHERE id=?',
             [university_name || null, logo_url, website_link || null, display_order ? parseInt(display_order) : null, req.params.id]
         );
-        const item = await db.get('SELECT * FROM partners WHERE id = ?', [req.params.id]);
-        res.json(item);
+        res.json(await db.get('SELECT * FROM partners WHERE id = ?', [req.params.id]));
     } catch (err) { res.status(500).json({ error: 'Failed to update partner' }); }
 });
 
 router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const partner = await db.get('SELECT logo_url FROM partners WHERE id = ?', [req.params.id]);
-        if (partner && partner.logo_url && partner.logo_url.includes('/uploads/')) {
-            const file = path.join(process.cwd(), process.env.UPLOAD_DIR || './uploads', 'images', path.basename(partner.logo_url));
-            if (fs.existsSync(file)) fs.unlinkSync(file);
-        }
+        if (partner?.logo_url) await deleteFromSupabase(partner.logo_url);
         await db.run('DELETE FROM partners WHERE id = ?', [req.params.id]);
         res.json({ message: 'Deleted' });
     } catch (err) { res.status(500).json({ error: 'Failed to delete partner' }); }

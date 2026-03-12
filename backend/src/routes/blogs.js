@@ -1,10 +1,9 @@
 const router = require('express').Router();
 const db = require('../db/client');
 const { authMiddleware } = require('../middleware/auth');
-const { imageUpload, getFileUrl } = require('../middleware/upload');
+const { imageUpload } = require('../middleware/upload');
+const { uploadToSupabase, deleteFromSupabase } = require('../utils/supabaseStorage');
 const { body, validationResult } = require('express-validator');
-const fs = require('fs');
-const path = require('path');
 
 function slugify(text) {
     return text.toString().toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-').trim('-');
@@ -47,7 +46,9 @@ router.post('/', authMiddleware, imageUpload.single('image'), async (req, res) =
         const { title, content, excerpt, category, published } = req.body;
         if (!title) return res.status(400).json({ error: 'title is required' });
         const slug = req.body.slug || slugify(title) + '-' + Date.now();
-        const image_url = req.file ? getFileUrl(req, req.file.filename, 'images') : null;
+        const image_url = req.file
+            ? await uploadToSupabase(req.file.buffer, req.file.originalname, req.file.mimetype, 'images')
+            : null;
         const result = await db.run(
             'INSERT INTO blogs (title, slug, content, excerpt, image_url, category, published) VALUES (?,?,?,?,?,?,?)',
             [title, slug, content || '', excerpt || '', image_url, category || '', published === '1' || published === true ? 1 : 0]
@@ -65,12 +66,9 @@ router.put('/:id', authMiddleware, imageUpload.single('image'), async (req, res)
         const { title, slug, content, excerpt, category, published } = req.body;
         let image_url = null;
         if (req.file) {
-            image_url = getFileUrl(req, req.file.filename, 'images');
             const old = await db.get('SELECT image_url FROM blogs WHERE id = ?', [req.params.id]);
-            if (old && old.image_url && old.image_url.includes('/uploads/')) {
-                const file = path.join(process.cwd(), process.env.UPLOAD_DIR || './uploads', 'images', path.basename(old.image_url));
-                if (fs.existsSync(file)) fs.unlinkSync(file);
-            }
+            if (old?.image_url) await deleteFromSupabase(old.image_url);
+            image_url = await uploadToSupabase(req.file.buffer, req.file.originalname, req.file.mimetype, 'images');
         }
         const pubVal = published === '1' || published === true || published === 'true' ? 1 : published === '0' || published === false || published === 'false' ? 0 : null;
         await db.run(
@@ -85,10 +83,7 @@ router.put('/:id', authMiddleware, imageUpload.single('image'), async (req, res)
 router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const old = await db.get('SELECT image_url FROM blogs WHERE id = ?', [req.params.id]);
-        if (old && old.image_url && old.image_url.includes('/uploads/')) {
-            const file = path.join(process.cwd(), process.env.UPLOAD_DIR || './uploads', 'images', path.basename(old.image_url));
-            if (fs.existsSync(file)) fs.unlinkSync(file);
-        }
+        if (old?.image_url) await deleteFromSupabase(old.image_url);
         await db.run('DELETE FROM blogs WHERE id = ?', [req.params.id]);
         res.json({ message: 'Deleted' });
     } catch (err) { res.status(500).json({ error: 'Failed to delete' }); }
