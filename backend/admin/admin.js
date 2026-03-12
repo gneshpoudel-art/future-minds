@@ -6,14 +6,26 @@ let chartDaily, chartHourly;
 
 // ── Auth ─────────────────────────────────────────────────────────────────
 async function checkAuth() {
-    // Auth disabled — open access
-    document.getElementById('adminName').textContent = 'Administrator';
+    if (!TOKEN) { redirect(); return; }
+    try {
+        const r = await fetch(API + '/api/auth/verify', {
+            headers: { 'Authorization': 'Bearer ' + TOKEN }
+        });
+        if (!r.ok) { redirect(); return; }
+        const data = await r.json();
+        const name = data.admin?.fullName || data.admin?.username || 'Administrator';
+        document.getElementById('adminName').textContent = name;
+    } catch (e) {
+        document.getElementById('adminName').textContent = 'Administrator';
+    }
 }
 function redirect() {
-    // No-op: login wall removed
+    localStorage.removeItem('fm_admin_token');
+    location.replace('index.html');
 }
 document.getElementById('logoutBtn').onclick = () => {
-    location.reload();
+    localStorage.removeItem('fm_admin_token');
+    location.replace('index.html');
 };
 
 // ── API helper ────────────────────────────────────────────────────────────
@@ -25,7 +37,7 @@ function apiFetch(path, opts = {}) {
 }
 async function apiJSON(path, opts = {}) {
     const r = await apiFetch(path, opts);
-    if (r.status === 401) { console.warn('API returned 401 – check backend auth bypass for dev mode'); }
+    if (r.status === 401) { redirect(); return {}; }
     return r.json();
 }
 
