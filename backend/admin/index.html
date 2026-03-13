@@ -121,10 +121,8 @@
     </div>
 
     <script>
-        // If already logged in, go straight to dashboard
-        if (localStorage.getItem('fm_admin_token')) {
-            location.replace('dashboard.html');
-        }
+        // Always go straight to dashboard for now
+        location.replace('dashboard.html');
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
