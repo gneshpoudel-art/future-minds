@@ -10,11 +10,26 @@ router.get('/', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Failed to fetch FAQs' }); }
 });
 
-router.post('/', authMiddleware, [
+const validateCreate = [
     body('question').trim().isLength({ min: 1, max: 500 }).escape(),
     body('answer').trim().isLength({ min: 1, max: 5000 }).escape(),
     body('display_order').optional().isInt(),
-], async (req, res) => {
+];
+
+const validateUpdate = [
+    body('question').optional().trim().isLength({ min: 1, max: 500 }).escape(),
+    body('answer').optional().trim().isLength({ min: 1, max: 5000 }).escape(),
+    body('display_order').optional().isInt(),
+];
+
+router.get('/', async (req, res) => {
+    try {
+        const items = await db.all('SELECT * FROM faqs ORDER BY display_order ASC, created_at ASC');
+        res.json(items);
+    } catch (err) { res.status(500).json({ error: 'Failed to fetch FAQs' }); }
+});
+
+router.post('/', authMiddleware, validateCreate, async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
@@ -27,7 +42,9 @@ router.post('/', authMiddleware, [
     } catch (err) { res.status(500).json({ error: 'Failed to create FAQ' }); }
 });
 
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id', authMiddleware, validateUpdate, async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
         const { question, answer, display_order } = req.body;
         await db.run(

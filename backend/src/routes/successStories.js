@@ -3,6 +3,23 @@ const db = require('../db/client');
 const { authMiddleware } = require('../middleware/auth');
 const { imageUpload } = require('../middleware/upload');
 const { uploadToSupabase, deleteFromSupabase } = require('../utils/supabaseStorage');
+const { body, validationResult } = require('express-validator');
+
+const validateCreate = [
+    body('student_name').trim().isLength({ min: 1, max: 100 }).escape(),
+    body('story_text').trim().isLength({ min: 1, max: 5000 }).escape(),
+    body('country').optional().trim().isLength({ max: 100 }).escape(),
+    body('university').optional().trim().isLength({ max: 200 }).escape(),
+    body('display_order').optional().isInt(),
+];
+
+const validateUpdate = [
+    body('student_name').optional().trim().isLength({ min: 1, max: 100 }).escape(),
+    body('story_text').optional().trim().isLength({ min: 1, max: 5000 }).escape(),
+    body('country').optional().trim().isLength({ max: 100 }).escape(),
+    body('university').optional().trim().isLength({ max: 200 }).escape(),
+    body('display_order').optional().isInt(),
+];
 
 router.get('/', async (req, res) => {
     try {
@@ -11,10 +28,11 @@ router.get('/', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Failed to fetch success stories' }); }
 });
 
-router.post('/', authMiddleware, imageUpload.single('image'), async (req, res) => {
+router.post('/', authMiddleware, imageUpload.single('image'), validateCreate, async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
         const { student_name, story_text, country, university, display_order } = req.body;
-        if (!student_name || !story_text) return res.status(400).json({ error: 'student_name and story_text required' });
         const image_url = req.file
             ? await uploadToSupabase(req.file.buffer, req.file.originalname, req.file.mimetype, 'images')
             : null;
@@ -26,7 +44,9 @@ router.post('/', authMiddleware, imageUpload.single('image'), async (req, res) =
     } catch (err) { res.status(500).json({ error: 'Failed to create success story' }); }
 });
 
-router.put('/:id', authMiddleware, imageUpload.single('image'), async (req, res) => {
+router.put('/:id', authMiddleware, imageUpload.single('image'), validateUpdate, async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
         const { student_name, story_text, country, university, display_order } = req.body;
         let image_url = null;

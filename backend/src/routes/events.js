@@ -11,10 +11,34 @@ router.get('/', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Failed to fetch events' }); }
 });
 
-router.post('/', authMiddleware, imageUpload.single('image'), async (req, res) => {
+const { body, validationResult } = require('express-validator');
+
+const validateCreate = [
+    body('title').trim().isLength({ min: 1, max: 200 }).escape(),
+    body('description').optional().trim().isLength({ max: 5000 }).escape(),
+    body('event_date').optional().trim().isLength({ max: 100 }).escape(),
+    body('location').optional().trim().isLength({ max: 200 }).escape(),
+];
+
+const validateUpdate = [
+    body('title').optional().trim().isLength({ min: 1, max: 200 }).escape(),
+    body('description').optional().trim().isLength({ max: 5000 }).escape(),
+    body('event_date').optional().trim().isLength({ max: 100 }).escape(),
+    body('location').optional().trim().isLength({ max: 200 }).escape(),
+];
+
+router.get('/', async (req, res) => {
+    try {
+        const items = await db.all('SELECT * FROM events ORDER BY event_date DESC, created_at DESC');
+        res.json(items);
+    } catch (err) { res.status(500).json({ error: 'Failed to fetch events' }); }
+});
+
+router.post('/', authMiddleware, imageUpload.single('image'), validateCreate, async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
         const { title, description, event_date, location } = req.body;
-        if (!title) return res.status(400).json({ error: 'title required' });
         const image_url = req.file
             ? await uploadToSupabase(req.file.buffer, req.file.originalname, req.file.mimetype, 'images')
             : null;
@@ -26,7 +50,9 @@ router.post('/', authMiddleware, imageUpload.single('image'), async (req, res) =
     } catch (err) { res.status(500).json({ error: 'Failed to create event' }); }
 });
 
-router.put('/:id', authMiddleware, imageUpload.single('image'), async (req, res) => {
+router.put('/:id', authMiddleware, imageUpload.single('image'), validateUpdate, async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
         const { title, description, event_date, location } = req.body;
         let image_url = null;

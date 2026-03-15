@@ -3,11 +3,19 @@ const db = require('../db/client');
 const { authMiddleware } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
 
-const validate = [
+const validateCreate = [
     body('branch_name').trim().isLength({ min: 1, max: 200 }).escape(),
     body('address').optional().trim().isLength({ max: 500 }).escape(),
     body('phone').optional().trim().isLength({ max: 100 }).escape(),
-    body('map_link').optional().trim().isURL().isLength({ max: 500 }),
+    body('map_link').optional().trim().isLength({ max: 500 }),
+    body('display_order').optional().isInt(),
+];
+
+const validateUpdate = [
+    body('branch_name').optional().trim().isLength({ min: 1, max: 200 }).escape(),
+    body('address').optional().trim().isLength({ max: 500 }).escape(),
+    body('phone').optional().trim().isLength({ max: 100 }).escape(),
+    body('map_link').optional().trim().isLength({ max: 500 }),
     body('display_order').optional().isInt(),
 ];
 
@@ -18,7 +26,7 @@ router.get('/', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Failed to fetch branches' }); }
 });
 
-router.post('/', authMiddleware, validate, async (req, res) => {
+router.post('/', authMiddleware, validateCreate, async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
@@ -32,7 +40,7 @@ router.post('/', authMiddleware, validate, async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Failed to create branch' }); }
 });
 
-router.put('/:id', authMiddleware, validate, async (req, res) => {
+router.put('/:id', authMiddleware, validateUpdate, async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {

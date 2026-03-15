@@ -5,6 +5,18 @@ const { fileUpload } = require('../middleware/upload');
 const { uploadToSupabase, deleteFromSupabase } = require('../utils/supabaseStorage');
 const path = require('path');
 
+const { body, validationResult } = require('express-validator');
+
+const validateCreate = [
+    body('title').trim().isLength({ min: 1, max: 200 }).escape(),
+    body('file_url').optional().trim().isLength({ max: 500 }),
+];
+
+const validateUpdate = [
+    body('title').optional().trim().isLength({ min: 1, max: 200 }).escape(),
+    body('file_url').optional().trim().isLength({ max: 500 }),
+];
+
 router.get('/', async (req, res) => {
     try {
         const items = await db.all('SELECT id, title, file_url, file_type, download_count, created_at FROM downloads ORDER BY created_at DESC');
@@ -21,11 +33,12 @@ router.post('/download/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Failed to record download' }); }
 });
 
-router.post('/', authMiddleware, fileUpload.single('file'), async (req, res) => {
+router.post('/', authMiddleware, fileUpload.single('file'), validateCreate, async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
         if (!req.file && !req.body.file_url) return res.status(400).json({ error: 'file or file_url required' });
         const { title } = req.body;
-        if (!title) return res.status(400).json({ error: 'title required' });
         let file_url = req.body.file_url || null;
         let file_type = 'link';
         let file_size = null;
@@ -42,10 +55,12 @@ router.post('/', authMiddleware, fileUpload.single('file'), async (req, res) => 
     } catch (err) { res.status(500).json({ error: 'Failed to upload file' }); }
 });
 
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id', authMiddleware, validateUpdate, async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
         const { title } = req.body;
-        await db.run('UPDATE downloads SET title = ? WHERE id = ?', [title, req.params.id]);
+        await db.run('UPDATE downloads SET title = COALESCE(?, title) WHERE id = ?', [title || null, req.params.id]);
         res.json(await db.get('SELECT * FROM downloads WHERE id = ?', [req.params.id]));
     } catch (err) { res.status(500).json({ error: 'Failed to update' }); }
 });

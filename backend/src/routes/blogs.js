@@ -5,6 +5,24 @@ const { imageUpload } = require('../middleware/upload');
 const { uploadToSupabase, deleteFromSupabase } = require('../utils/supabaseStorage');
 const { body, validationResult } = require('express-validator');
 
+const validateCreate = [
+    body('title').trim().isLength({ min: 1, max: 200 }).escape(),
+    body('slug').optional().trim().isLength({ max: 100 }).escape(),
+    body('content').optional().trim().escape(),
+    body('excerpt').optional().trim().isLength({ max: 500 }).escape(),
+    body('category').optional().trim().isLength({ max: 50 }).escape(),
+    body('published').optional(),
+];
+
+const validateUpdate = [
+    body('title').optional().trim().isLength({ min: 1, max: 200 }).escape(),
+    body('slug').optional().trim().isLength({ max: 100 }).escape(),
+    body('content').optional().trim().escape(),
+    body('excerpt').optional().trim().isLength({ max: 500 }).escape(),
+    body('category').optional().trim().isLength({ max: 50 }).escape(),
+    body('published').optional(),
+];
+
 function slugify(text) {
     return text.toString().toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-').trim('-');
 }
@@ -41,17 +59,18 @@ router.get('/admin/all', authMiddleware, async (req, res) => {
 });
 
 // Admin: create blog
-router.post('/', authMiddleware, imageUpload.single('image'), async (req, res) => {
+router.post('/', authMiddleware, imageUpload.single('image'), validateCreate, async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
         const { title, content, excerpt, category, published } = req.body;
-        if (!title) return res.status(400).json({ error: 'title is required' });
         const slug = req.body.slug || slugify(title) + '-' + Date.now();
         const image_url = req.file
             ? await uploadToSupabase(req.file.buffer, req.file.originalname, req.file.mimetype, 'images')
             : null;
         const result = await db.run(
             'INSERT INTO blogs (title, slug, content, excerpt, image_url, category, published) VALUES (?,?,?,?,?,?,?)',
-            [title, slug, content || '', excerpt || '', image_url, category || '', published === '1' || published === true ? 1 : 0]
+            [title, slug, content || '', excerpt || '', image_url, category || '', published === '1' || published === true || published === 'true' ? 1 : 0]
         );
         res.status(201).json(await db.get('SELECT * FROM blogs WHERE id = ?', [result.lastInsertRowid]));
     } catch (err) {
@@ -61,7 +80,9 @@ router.post('/', authMiddleware, imageUpload.single('image'), async (req, res) =
 });
 
 // Admin: update blog
-router.put('/:id', authMiddleware, imageUpload.single('image'), async (req, res) => {
+router.put('/:id', authMiddleware, imageUpload.single('image'), validateUpdate, async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
         const { title, slug, content, excerpt, category, published } = req.body;
         let image_url = null;
