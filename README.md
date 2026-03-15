@@ -42,4 +42,5 @@ This project is built with:
 - Tailwind CSS
 
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
+to run backend 
+                        cd backend && npm run dev

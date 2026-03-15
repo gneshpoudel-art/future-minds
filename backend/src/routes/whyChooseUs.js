@@ -29,7 +29,7 @@ router.post('/', authMiddleware, validate, async (req, res) => {
         );
         const item = await db.get('SELECT * FROM why_choose_us WHERE id = ?', [result.lastInsertRowid]);
         res.status(201).json(item);
-    } catch (err) { console.error('[whyChooseUs POST]', err); res.status(500).json({ error: 'Failed to create item', detail: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Failed to create item' }); }
 });
 
 router.put('/:id', authMiddleware, validate, async (req, res) => {
@@ -43,14 +43,14 @@ router.put('/:id', authMiddleware, validate, async (req, res) => {
         );
         const item = await db.get('SELECT * FROM why_choose_us WHERE id = ?', [req.params.id]);
         res.json(item);
-    } catch (err) { console.error('[whyChooseUs PUT]', err); res.status(500).json({ error: 'Failed to update item', detail: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Failed to update item' }); }
 });
 
 router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         await db.run('DELETE FROM why_choose_us WHERE id = ?', [req.params.id]);
         res.json({ message: 'Deleted' });
-    } catch (err) { console.error('[whyChooseUs DELETE]', err); res.status(500).json({ error: 'Failed to delete', detail: err.message }); }
+    } catch (err) { res.status(500).json({ error: 'Failed to delete' }); }
 });
 
 module.exports = router;

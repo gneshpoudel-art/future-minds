@@ -18,27 +18,18 @@ app.use(helmet({
             styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "blob:", "https:", "http:"],
             fontSrc: ["'self'", "fonts.gstatic.com", "data:"],
-            connectSrc: ["'self'", "https:"],
+            connectSrc: ["'self'", "https:", "http://localhost:4000", "http://localhost:8080"],
         },
     },
 }));
 
 // CORS
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:8080,http://localhost:5173').split(',').map(o => o.trim());
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:8080').split(',').map(o => o.trim());
 app.use(cors({
     origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps or curl)
-        if (!origin) return callback(null, true);
-
-        // Check if origin is in whitelist or matches .onrender.com
-        const isAllowed = allowedOrigins.includes(origin) ||
-            allowedOrigins.includes('*') ||
-            origin.endsWith('.onrender.com');
-
-        if (isAllowed) {
+        if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
             callback(null, true);
         } else {
-            console.error('[CORS Error] Origin not allowed:', origin);
             callback(new Error('Not allowed by CORS'));
         }
     },
@@ -100,14 +91,14 @@ app.use((req, res) => {
 
 // Error handler
 app.use((err, req, res, next) => {
-    console.error('[Error]', err.message, err.stack);
     if (err.name === 'MulterError') {
         return res.status(400).json({ error: err.message });
     }
     if (err.message && err.message.includes('Invalid')) {
         return res.status(400).json({ error: err.message });
     }
-    res.status(500).json({ error: 'Internal server error', detail: err.message });
+    console.error('[Error]', err);
+    res.status(500).json({ error: 'Internal server error' });
 });
 
 module.exports = app;

@@ -1,6 +1,6 @@
 'use strict';
 const API = window.location.origin;
-let TOKEN = localStorage.getItem('fm_admin_token') || null;
+let TOKEN = localStorage.getItem('fm_admin_token') || '';
 let modalContext = { type: '', id: null, data: null };
 let chartDaily, chartHourly;
 
