@@ -24,12 +24,21 @@ app.use(helmet({
 }));
 
 // CORS
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:8080').split(',').map(o => o.trim());
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:8080,http://localhost:5173').split(',').map(o => o.trim());
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+
+        // Check if origin is in whitelist or matches .onrender.com
+        const isAllowed = allowedOrigins.includes(origin) ||
+            allowedOrigins.includes('*') ||
+            origin.endsWith('.onrender.com');
+
+        if (isAllowed) {
             callback(null, true);
         } else {
+            console.error('[CORS Error] Origin not allowed:', origin);
             callback(new Error('Not allowed by CORS'));
         }
     },
