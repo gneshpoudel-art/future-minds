@@ -3,8 +3,16 @@ const db = require('../db/client');
 const { authMiddleware } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
 
-const validate = [
+const validateCreate = [
     body('title').trim().isLength({ min: 1, max: 200 }).escape(),
+    body('description').optional().trim().isLength({ max: 1000 }).escape(),
+    body('icon').optional().trim().isLength({ max: 50 }).escape(),
+    body('slug').optional().trim().isLength({ max: 100 }).escape(),
+    body('display_order').optional().isInt(),
+];
+
+const validateUpdate = [
+    body('title').optional().trim().isLength({ min: 1, max: 200 }).escape(),
     body('description').optional().trim().isLength({ max: 1000 }).escape(),
     body('icon').optional().trim().isLength({ max: 50 }).escape(),
     body('slug').optional().trim().isLength({ max: 100 }).escape(),
@@ -18,7 +26,7 @@ router.get('/', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Failed to fetch items' }); }
 });
 
-router.post('/', authMiddleware, validate, async (req, res) => {
+router.post('/', authMiddleware, validateCreate, async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
@@ -32,7 +40,7 @@ router.post('/', authMiddleware, validate, async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Failed to create item' }); }
 });
 
-router.put('/:id', authMiddleware, validate, async (req, res) => {
+router.put('/:id', authMiddleware, validateUpdate, async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {

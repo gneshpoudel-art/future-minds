@@ -13,11 +13,36 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Admin: create a new statistic
+router.post('/', authMiddleware, [
+    body('label').trim().isLength({ min: 1, max: 100 }).escape(),
+    body('value').trim().isLength({ min: 1, max: 20 }).escape(),
+    body('suffix').optional().trim().isLength({ max: 10 }).escape(),
+    body('icon').optional().trim().isLength({ max: 50 }).escape(),
+    body('display_order').optional().isInt(),
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    try {
+        const { label, value, suffix, icon, display_order } = req.body;
+        const result = await db.run(
+            'INSERT INTO statistics (label, value, suffix, icon, display_order) VALUES (?,?,?,?,?)',
+            [label, value, suffix || '+', icon || 'Users', display_order || 0]
+        );
+        const stat = await db.get('SELECT * FROM statistics WHERE id = ?', [result.lastInsertRowid]);
+        res.status(201).json(stat);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to create statistic' });
+    }
+});
+
 // Admin: update a statistic
 router.put('/:id', authMiddleware, [
     body('label').optional().trim().isLength({ max: 100 }).escape(),
     body('value').optional().trim().isLength({ max: 20 }).escape(),
     body('suffix').optional().trim().isLength({ max: 10 }).escape(),
+    body('icon').optional().trim().isLength({ max: 50 }).escape(),
     body('display_order').optional().isInt(),
 ], async (req, res) => {
     const errors = validationResult(req);
@@ -33,6 +58,16 @@ router.put('/:id', authMiddleware, [
         res.json(stat);
     } catch (err) {
         res.status(500).json({ error: 'Failed to update statistic' });
+    }
+});
+
+// Admin: delete a statistic
+router.delete('/:id', authMiddleware, async (req, res) => {
+    try {
+        await db.run('DELETE FROM statistics WHERE id = ?', [req.params.id]);
+        res.json({ message: 'Deleted' });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to delete statistic' });
     }
 });
 

@@ -138,6 +138,7 @@ function fmtTime(sec) {
 async function loadStatistics() {
     try {
         const data = await apiJSON('/api/statistics');
+        crudData['statistics'] = data;
         document.getElementById('tbl-statistics').innerHTML = data.length
             ? data.map(s => `<tr>
           <td><input style="width:140px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:8px" value="${esc(s.label)}" onchange="patchStat(${s.id},'label',this.value)"/></td>
@@ -145,9 +146,12 @@ async function loadStatistics() {
           <td><input style="width:60px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:8px" value="${esc(s.suffix)}" onchange="patchStat(${s.id},'suffix',this.value)"/></td>
           <td><input style="width:120px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:8px" value="${esc(s.icon)}" onchange="patchStat(${s.id},'icon',this.value)"/></td>
           <td><input type="number" style="width:60px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:8px" value="${s.display_order}" onchange="patchStat(${s.id},'display_order',this.value)"/></td>
-          <td><button class="btn btn-success btn-sm" onclick="saveStat(${s.id})">Save</button></td>
+          <td>
+            <button class="btn btn-success btn-sm" onclick="saveStat(${s.id})">Save</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteItem('/api/statistics',${s.id},loadStatistics)">Del</button>
+          </td>
         </tr>`).join('')
-            : '<tr><td colspan="6" class="text-muted" style="padding:20px">No statistics found. Run the seed script.</td></tr>';
+            : '<tr><td colspan="6" class="text-muted" style="padding:20px">No statistics found. Click "+ Add" to create one.</td></tr>';
     } catch (e) {
         document.getElementById('tbl-statistics').innerHTML = '<tr><td colspan="6" class="text-muted" style="padding:20px">Error loading statistics.</td></tr>';
     }
@@ -354,6 +358,12 @@ document.getElementById('pwForm').onsubmit = async (e) => {
 
 // ── Modal system ──────────────────────────────────────────────────────────
 const modalForms = {
+    statistics: (d) => `<div class="form-row"><label>Label *</label><input id="mf-label" value="${esc(d?.label || '')}"/></div>
+    <div class="form-row"><label>Value * (e.g. 500)</label><input id="mf-value" value="${esc(d?.value || '')}"/></div>
+    <div class="form-row"><label>Suffix (e.g. +, %)</label><input id="mf-suffix" value="${esc(d?.suffix || '+')}"/></div>
+    <div class="form-row"><label>Icon (Lucide name)</label><input id="mf-icon" value="${esc(d?.icon || 'Users')}"/></div>
+    <div class="form-row"><label>Display Order</label><input type="number" id="mf-order" value="${d?.display_order || 0}"/></div>`,
+
     whyus: (d) => `<div class="form-row"><label>Title *</label><input id="mf-title" value="${esc(d?.title || '')}"/></div>
     <div class="form-row"><label>Description</label><textarea id="mf-description">${esc(d?.description || '')}</textarea></div>
     <div class="form-row"><label>Icon (Lucide name)</label><input id="mf-icon" value="${esc(d?.icon || 'CheckCircle')}"/></div>
@@ -416,12 +426,14 @@ const modalForms = {
 };
 
 const modalEndpoints = {
+    statistics: '/api/statistics',
     whyus: '/api/why-choose-us', services: '/api/services', partners: '/api/partners',
     gallery: '/api/gallery', branches: '/api/branches', leadership: '/api/leadership',
     stories: '/api/success-stories', blogs: '/api/blogs', faqs: '/api/faqs',
     events: '/api/events', downloads: '/api/downloads',
 };
 const modalReloaders = {
+    statistics: loadStatistics,
     whyus: loadWhyUs, services: loadServices, partners: loadPartners, gallery: loadGallery,
     branches: loadBranches, leadership: loadLeadership, stories: loadStories, blogs: loadBlogs,
     faqs: loadFaqs, events: loadEvents, downloads: loadDownloads,
