@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 
 function authMiddleware(req, res, next) {
-    // Dev bypass – no login required
-    if (process.env.NODE_ENV === 'development' || process.env.SKIP_AUTH === 'true' || true) { // Forced true for now
+    // Dev bypass – only skip auth in development or when explicitly disabled
+    if (process.env.NODE_ENV === 'development' || process.env.SKIP_AUTH === 'true') {
         req.admin = { id: 1, username: 'admin', fullName: 'Administrator' };
         return next();
     }

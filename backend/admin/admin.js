@@ -1,9 +1,6 @@
 'use strict';
 const API = window.location.origin;
-let TOKEN = localStorage.getItem('fm_admin_token') || 'dev_bypass_token';
-if (!localStorage.getItem('fm_admin_token')) {
-    localStorage.setItem('fm_admin_token', 'dev_bypass_token');
-}
+let TOKEN = localStorage.getItem('fm_admin_token') || null;
 let modalContext = { type: '', id: null, data: null };
 let chartDaily, chartHourly;
 
@@ -23,9 +20,8 @@ async function checkAuth() {
     }
 }
 function redirect() {
-    console.warn('Redirect blocked: Auth bypass active');
-    // localStorage.removeItem('fm_admin_token');
-    // location.replace('index.html');
+    localStorage.removeItem('fm_admin_token');
+    location.replace('index.html');
 }
 document.getElementById('logoutBtn').onclick = () => {
     localStorage.removeItem('fm_admin_token');
