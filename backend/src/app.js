@@ -91,14 +91,14 @@ app.use((req, res) => {
 
 // Error handler
 app.use((err, req, res, next) => {
+    console.error('[Error]', err.message, err.stack);
     if (err.name === 'MulterError') {
         return res.status(400).json({ error: err.message });
     }
     if (err.message && err.message.includes('Invalid')) {
         return res.status(400).json({ error: err.message });
     }
-    console.error('[Error]', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', detail: err.message });
 });
 
 module.exports = app;
