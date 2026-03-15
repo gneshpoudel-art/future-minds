@@ -7,7 +7,7 @@ const validateCreate = [
     body('branch_name').trim().isLength({ min: 1, max: 200 }).escape(),
     body('address').optional().trim().isLength({ max: 500 }).escape(),
     body('phone').optional().trim().isLength({ max: 100 }).escape(),
-    body('map_link').optional().trim().isLength({ max: 500 }),
+    body('map_link').optional().trim().custom(val => !val || val.startsWith('http')).isLength({ max: 500 }),
     body('display_order').optional().isInt(),
 ];
 
@@ -15,7 +15,7 @@ const validateUpdate = [
     body('branch_name').optional().trim().isLength({ min: 1, max: 200 }).escape(),
     body('address').optional().trim().isLength({ max: 500 }).escape(),
     body('phone').optional().trim().isLength({ max: 100 }).escape(),
-    body('map_link').optional().trim().isLength({ max: 500 }),
+    body('map_link').optional().trim().custom(val => !val || val.startsWith('http')).isLength({ max: 500 }),
     body('display_order').optional().isInt(),
 ];
 

@@ -3,19 +3,6 @@ const db = require('../db/client');
 const { authMiddleware } = require('../middleware/auth');
 const { imageUpload } = require('../middleware/upload');
 const { uploadToSupabase, deleteFromSupabase } = require('../utils/supabaseStorage');
-const { body, validationResult } = require('express-validator');
-
-const validateCreate = [
-    body('university_name').trim().isLength({ min: 1, max: 200 }).escape(),
-    body('website_link').optional().trim().isLength({ max: 500 }),
-    body('display_order').optional().isInt(),
-];
-
-const validateUpdate = [
-    body('university_name').optional().trim().isLength({ min: 1, max: 200 }).escape(),
-    body('website_link').optional().trim().isLength({ max: 500 }),
-    body('display_order').optional().isInt(),
-];
 
 router.get('/', async (req, res) => {
     try {
@@ -24,11 +11,10 @@ router.get('/', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Failed to fetch partners' }); }
 });
 
-router.post('/', authMiddleware, imageUpload.single('logo'), validateCreate, async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+router.post('/', authMiddleware, imageUpload.single('logo'), async (req, res) => {
     try {
         const { university_name, website_link, display_order } = req.body;
+        if (!university_name) return res.status(400).json({ error: 'university_name is required' });
         const logo_url = req.file
             ? await uploadToSupabase(req.file.buffer, req.file.originalname, req.file.mimetype, 'images')
             : null;
@@ -40,9 +26,7 @@ router.post('/', authMiddleware, imageUpload.single('logo'), validateCreate, asy
     } catch (err) { res.status(500).json({ error: 'Failed to create partner' }); }
 });
 
-router.put('/:id', authMiddleware, imageUpload.single('logo'), validateUpdate, async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+router.put('/:id', authMiddleware, imageUpload.single('logo'), async (req, res) => {
     try {
         const { university_name, website_link, display_order } = req.body;
         let logo_url = null;

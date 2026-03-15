@@ -1,21 +1,8 @@
 const router = require('express').Router();
 const db = require('../db/client');
 const { authMiddleware } = require('../middleware/auth');
-const { body, validationResult } = require('express-validator');
-
-const validateCreate = [
-    body('name').trim().isLength({ min: 1, max: 100 }).escape(),
-    body('position').optional().trim().isLength({ max: 100 }).escape(),
-    body('message').trim().isLength({ min: 1, max: 5000 }).escape(),
-    body('display_order').optional().isInt(),
-];
-
-const validateUpdate = [
-    body('name').optional().trim().isLength({ min: 1, max: 100 }).escape(),
-    body('position').optional().trim().isLength({ max: 100 }).escape(),
-    body('message').optional().trim().isLength({ min: 1, max: 5000 }).escape(),
-    body('display_order').optional().isInt(),
-];
+const { imageUpload } = require('../middleware/upload');
+const { uploadToSupabase, deleteFromSupabase } = require('../utils/supabaseStorage');
 
 router.get('/', async (req, res) => {
     try {
@@ -24,11 +11,10 @@ router.get('/', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Failed to fetch leadership' }); }
 });
 
-router.post('/', authMiddleware, imageUpload.single('photo'), validateCreate, async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+router.post('/', authMiddleware, imageUpload.single('photo'), async (req, res) => {
     try {
         const { name, position, message, display_order } = req.body;
+        if (!name || !message) return res.status(400).json({ error: 'name and message are required' });
         const photo_url = req.file
             ? await uploadToSupabase(req.file.buffer, req.file.originalname, req.file.mimetype, 'images')
             : null;
@@ -40,9 +26,7 @@ router.post('/', authMiddleware, imageUpload.single('photo'), validateCreate, as
     } catch (err) { res.status(500).json({ error: 'Failed to create leadership message' }); }
 });
 
-router.put('/:id', authMiddleware, imageUpload.single('photo'), validateUpdate, async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+router.put('/:id', authMiddleware, imageUpload.single('photo'), async (req, res) => {
     try {
         const { name, position, message, display_order } = req.body;
         let photo_url = null;
