@@ -28,7 +28,14 @@ app.use(helmet({
 }));
 
 // CORS - handle production and development domains
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:8080,http://localhost:4000').split(',').map(o => o.trim());
+const fallbackOrigins = [
+    'https://future-minds.onrender.com',
+    'https://future-mindss.onrender.com',
+    'http://localhost:8080',
+    'http://localhost:4000',
+    'http://localhost:5173'
+];
+const allowedOrigins = (process.env.CORS_ORIGIN || fallbackOrigins.join(',')).split(',').map(o => o.trim());
 console.log('[CORS] Allowed origins:', allowedOrigins);
 
 app.use(cors({
@@ -107,7 +114,9 @@ app.get('/api', (req, res) => {
 
 // Serve frontend static files (if built)
 const frontendDir = path.join(__dirname, '..', '..', 'dist');
+const indexPath = path.join(frontendDir, 'index.html');
 console.log('[Server] Frontend directory:', frontendDir);
+console.log('[Server] Index path exists:', require('fs').existsSync(indexPath));
 console.log('[Server] Admin directory:', path.join(__dirname, '..', 'admin'));
 
 app.use(express.static(frontendDir, {
