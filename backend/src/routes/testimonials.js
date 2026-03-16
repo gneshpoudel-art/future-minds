@@ -25,14 +25,24 @@ router.post('/', imageUpload.single('photo'), [
         const { name, university, message } = req.body;
         let photo_url = null;
         if (req.file) {
-            photo_url = await uploadToSupabase(req.file.buffer, req.file.originalname, req.file.mimetype, 'images');
+            try {
+                photo_url = await uploadToSupabase(req.file.buffer, req.file.originalname, req.file.mimetype, 'images');
+            } catch (uploadErr) {
+                console.error('[Testimonials] Photo upload failed:', uploadErr.message);
+                // Continue without photo if upload fails
+                photo_url = null;
+            }
         }
+        console.log(`[Testimonials] Submission from ${name}`);
         await db.run(
             "INSERT INTO testimonials (name, university, message, photo_url, status) VALUES (?,?,?,?,'pending')",
             [name, university || '', message, photo_url]
         );
         res.status(201).json({ id: Date.now(), message: 'Testimonial submitted successfully. It will appear after review.' });
-    } catch (err) { res.status(500).json({ error: 'Failed to submit testimonial' }); }
+    } catch (err) {
+        console.error('[Testimonials] Error:', err.message);
+        res.status(500).json({ error: 'Failed to submit testimonial: ' + err.message });
+    }
 });
 
 // Admin: get all testimonials

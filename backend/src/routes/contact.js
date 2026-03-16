@@ -14,12 +14,16 @@ router.post('/', [
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
         const { full_name, email, phone, subject, preferred_date, service, message, form_type } = req.body;
+        console.log(`[Contact] ${form_type || 'inquiry'} from ${full_name}`);
         await db.run(
             'INSERT INTO contact_submissions (full_name, email, phone, subject, preferred_date, service, message, form_type) VALUES (?,?,?,?,?,?,?,?)',
             [full_name, email, phone || '', subject || '', preferred_date || '', service || '', message, form_type || 'inquiry']
         );
         res.status(201).json({ message: 'Your message has been received. We will contact you shortly.' });
-    } catch (err) { res.status(500).json({ error: 'Failed to submit message' }); }
+    } catch (err) {
+        console.error('[Contact] Error:', err.message);
+        res.status(500).json({ error: 'Failed to submit message' });
+    }
 });
 
 // Admin: view submissions

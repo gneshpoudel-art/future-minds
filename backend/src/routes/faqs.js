@@ -3,13 +3,6 @@ const db = require('../db/client');
 const { authMiddleware } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
 
-router.get('/', async (req, res) => {
-    try {
-        const items = await db.all('SELECT * FROM faqs ORDER BY display_order ASC, created_at ASC');
-        res.json(items);
-    } catch (err) { res.status(500).json({ error: 'Failed to fetch FAQs' }); }
-});
-
 const validateCreate = [
     body('question').trim().isLength({ min: 1, max: 500 }).escape(),
     body('answer').trim().isLength({ min: 1, max: 5000 }).escape(),

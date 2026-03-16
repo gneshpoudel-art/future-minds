@@ -2,12 +2,17 @@ const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+    console.warn('[Supabase] Missing SUPABASE_URL or SUPABASE_SERVICE_KEY - uploads will fail');
+}
+
 const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY
+    process.env.SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_KEY || ''
 );
 
 const BUCKET = process.env.SUPABASE_BUCKET || 'uploads';
+console.log('[Supabase] Using bucket:', BUCKET);
 
 /**
  * Upload a file buffer to Supabase Storage.
@@ -18,20 +23,31 @@ const BUCKET = process.env.SUPABASE_BUCKET || 'uploads';
  * @returns {Promise<string>} Public URL of the uploaded file
  */
 async function uploadToSupabase(buffer, originalname, mimetype, folder = 'images') {
-    const ext = path.extname(originalname).toLowerCase();
-    const filename = `${folder}/${uuidv4()}${ext}`;
+    try {
+        const ext = path.extname(originalname).toLowerCase();
+        const filename = `${folder}/${uuidv4()}${ext}`;
+        
+        console.log('[Supabase] Uploading:', filename);
 
-    const { error } = await supabase.storage
-        .from(BUCKET)
-        .upload(filename, buffer, {
-            contentType: mimetype,
-            upsert: false,
-        });
+        const { data, error } = await supabase.storage
+            .from(BUCKET)
+            .upload(filename, buffer, {
+                contentType: mimetype,
+                upsert: false,
+            });
 
-    if (error) throw new Error('Supabase upload failed: ' + error.message);
+        if (error) {
+            console.error('[Supabase] Upload error:', error);
+            throw new Error('Supabase upload failed: ' + (error.message || JSON.stringify(error)));
+        }
 
-    const { data } = supabase.storage.from(BUCKET).getPublicUrl(filename);
-    return data.publicUrl;
+        const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(filename);
+        console.log('[Supabase] Upload success:', filename);
+        return urlData.publicUrl;
+    } catch (err) {
+        console.error('[Supabase] Upload exception:', err.message);
+        throw err;
+    }
 }
 
 /**

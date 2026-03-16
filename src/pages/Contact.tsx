@@ -1,10 +1,60 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Send, MapPin, Phone, Mail } from "lucide-react";
+import { Send, MapPin, Phone, Mail, Loader2, CheckCircle } from "lucide-react";
 import SectionHeading from "@/components/SectionHeading";
+import { useToast } from "@/hooks/use-toast";
 
 const Contact = () => {
   const [formType, setFormType] = useState<"inquiry" | "appointment">("inquiry");
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const data = {
+      full_name: formData.get("fullName"),
+      email: formData.get("email"),
+      phone: formData.get("phone"),
+      subject: formType === "appointment" ? formData.get("service") : formData.get("subject"),
+      preferred_date: formData.get("preferredDate") || "",
+      service: formData.get("service") || "",
+      message: formData.get("message"),
+      form_type: formType,
+    };
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to send message");
+      }
+
+      setSubmitted(true);
+      toast({
+        title: "Success!",
+        description: "Your message has been received. We will contact you shortly.",
+      });
+      form.reset();
+      setTimeout(() => setSubmitted(false), 5000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to send message",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div>
@@ -32,7 +82,7 @@ const Contact = () => {
                 ))}
               </div>
 
-              <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+              <form className="space-y-5" onSubmit={handleSubmit}>
                 <div className="grid md:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1.5">Full Name</label>
@@ -76,8 +126,23 @@ const Contact = () => {
                   <label className="block text-sm font-medium text-foreground mb-1.5">Message</label>
                   <textarea name="message" required maxLength={1000} rows={5} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" placeholder="Tell us more..." />
                 </div>
-                <button type="submit" className="inline-flex items-center gap-2 gradient-primary text-primary-foreground rounded-xl px-8 py-3.5 font-semibold text-sm hover:opacity-90 transition-opacity">
-                  <Send className="h-4 w-4" /> {formType === "appointment" ? "Book Appointment" : "Send Message"}
+                <button type="submit" disabled={loading} className="inline-flex items-center gap-2 gradient-primary text-primary-foreground rounded-xl px-8 py-3.5 font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : submitted ? (
+                    <>
+                      <CheckCircle className="h-4 w-4" />
+                      Sent Successfully
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      {formType === "appointment" ? "Book Appointment" : "Send Message"}
+                    </>
+                  )}
                 </button>
               </form>
             </div>

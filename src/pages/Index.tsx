@@ -91,9 +91,15 @@ const Index = () => {
   return (
     <div className="overflow-x-hidden">
       {/* Hero */}
-      <section ref={heroRef} className="relative min-h-[90vh] flex items-center overflow-hidden">
+      <section ref={heroRef} className="relative min-h-[90vh] flex items-center overflow-hidden bg-muted">
         <motion.div style={{ y: heroY }} className="absolute inset-0">
-          <img src={heroBg} alt="Students celebrating" className="w-full h-full object-cover" />
+          <img 
+            src={heroBg} 
+            alt="Students celebrating" 
+            className="w-full h-full object-cover" 
+            loading="eager"
+            decoding="async"
+          />
           <div className="absolute inset-0 gradient-hero" />
         </motion.div>
         <motion.div style={{ opacity: heroOpacity }} className="relative container mx-auto px-6 py-24">

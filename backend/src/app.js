@@ -6,6 +6,10 @@ const path = require('path');
 const { generalLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
+app.use((req, res, next) => {
+    console.log(`[Request] ${req.method} ${req.path}`);
+    next();
+});
 
 // Security headers
 app.use(helmet({
@@ -23,13 +27,16 @@ app.use(helmet({
     },
 }));
 
-// CORS
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:8080').split(',').map(o => o.trim());
+// CORS - handle production and development domains
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:8080,http://localhost:4000').split(',').map(o => o.trim());
+console.log('[CORS] Allowed origins:', allowedOrigins);
+
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
             callback(null, true);
         } else {
+            console.warn('[CORS] Rejected origin:', origin);
             callback(new Error('Not allowed by CORS'));
         }
     },
@@ -79,14 +86,36 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Root
-app.get('/', (req, res) => {
+// API root
+app.get('/api', (req, res) => {
     res.json({ message: 'Future Minds API', admin: '/admin', health: '/api/health' });
 });
 
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({ error: 'Not found' });
+// Serve frontend static files (if built)
+const frontendDir = path.join(__dirname, '..', '..', 'dist');
+app.use(express.static(frontendDir, {
+    maxAge: '1d',
+    setHeaders: (res, path) => {
+        if (path.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        }
+    }
+}));
+
+// SPA fallback - serve index.html for all non-API routes
+app.get('*', (req, res) => {
+    // Don't serve SPA for API or admin routes
+    if (req.path.startsWith('/api') || req.path.startsWith('/admin') || req.path.startsWith('/uploads') || req.path.startsWith('/analytics.js')) {
+        return res.status(404).json({ error: 'Not found' });
+    }
+
+    const indexPath = path.join(frontendDir, 'index.html');
+    res.sendFile(indexPath, (err) => {
+        if (err) {
+            // Fallback if dist doesn't exist (development mode)
+            res.status(404).json({ error: 'Frontend not found. Please build the frontend first.' });
+        }
+    });
 });
 
 // Error handler
@@ -96,6 +125,9 @@ app.use((err, req, res, next) => {
     }
     if (err.message && err.message.includes('Invalid')) {
         return res.status(400).json({ error: err.message });
+    }
+    if (err.message && err.message.includes('CORS')) {
+        return res.status(403).json({ error: 'CORS policy violation' });
     }
     console.error('[Error]', err);
     res.status(500).json({ error: 'Internal server error' });
