@@ -107,6 +107,9 @@ app.get('/api', (req, res) => {
 
 // Serve frontend static files (if built)
 const frontendDir = path.join(__dirname, '..', '..', 'dist');
+console.log('[Server] Frontend directory:', frontendDir);
+console.log('[Server] Admin directory:', path.join(__dirname, '..', 'admin'));
+
 app.use(express.static(frontendDir, {
     maxAge: '1d',
     setHeaders: (res, path) => {
