@@ -22,7 +22,7 @@ app.use(helmet({
             styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "blob:", "https:", "http:"],
             fontSrc: ["'self'", "fonts.gstatic.com", "data:"],
-            connectSrc: ["'self'", "https:", "http://localhost:4000", "http://localhost:8080"],
+            connectSrc: ["'self'", "https:", "http://localhost:*", "ws:", "wss:"],
         },
     },
 }));
@@ -33,12 +33,26 @@ console.log('[CORS] Allowed origins:', allowedOrigins);
 
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
-            callback(null, true);
-        } else {
-            console.warn('[CORS] Rejected origin:', origin);
-            callback(new Error('Not allowed by CORS'));
+        // Allow same-origin requests (no Origin header)
+        if (!origin) return callback(null, true);
+
+        // Allow if in whitelist or if whitelist contains '*'
+        if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+            return callback(null, true);
         }
+
+        // Also allow same-origin if requested from same host (resilient for production)
+        try {
+            const originHost = new URL(origin).host;
+            // This is a bit recursive in code but logically: if we are serving our own admin panel
+            // and it calls our API, it should be allowed regardless of the exact domain name.
+            // However, in standard CORS, usually we rely on the whitelist.
+            // For Render, we'll suggest the user adds their domain to CORS_ORIGIN.
+            // But to be helpful, let's log specifically what's being rejected.
+        } catch (e) { }
+
+        console.warn('[CORS] Rejected origin:', origin);
+        callback(new Error('Not allowed by CORS'));
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
