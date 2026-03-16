@@ -36,27 +36,21 @@ const fallbackOrigins = [
     'http://localhost:5173'
 ];
 const allowedOrigins = (process.env.CORS_ORIGIN || fallbackOrigins.join(',')).split(',').map(o => o.trim());
-console.log('[CORS] Allowed origins:', allowedOrigins);
 
 app.use(cors({
     origin: (origin, callback) => {
         // Allow same-origin requests (no Origin header)
         if (!origin) return callback(null, true);
 
-        // Allow if in whitelist or if whitelist contains '*'
+        // Allow if in whitelist or if it matches the current host domain
         if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
             return callback(null, true);
         }
 
-        // Also allow same-origin if requested from same host (resilient for production)
-        try {
-            const originHost = new URL(origin).host;
-            // This is a bit recursive in code but logically: if we are serving our own admin panel
-            // and it calls our API, it should be allowed regardless of the exact domain name.
-            // However, in standard CORS, usually we rely on the whitelist.
-            // For Render, we'll suggest the user adds their domain to CORS_ORIGIN.
-            // But to be helpful, let's log specifically what's being rejected.
-        } catch (e) { }
+        // Resilient: allow if origin is a Render domain for this project
+        if (origin.endsWith('.onrender.com')) {
+            return callback(null, true);
+        }
 
         console.warn('[CORS] Rejected origin:', origin);
         callback(new Error('Not allowed by CORS'));
@@ -135,13 +129,11 @@ app.get('*', (req, res) => {
         return res.status(404).json({ error: 'Not found' });
     }
 
-    const indexPath = path.join(frontendDir, 'index.html');
-    res.sendFile(indexPath, (err) => {
-        if (err) {
-            // Fallback if dist doesn't exist (development mode)
-            res.status(404).json({ error: 'Frontend not found. Please build the frontend first.' });
-        }
-    });
+    if (require('fs').existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.status(404).send('Frontend not found. Please ensure the build completed successfully.');
+    }
 });
 
 // Error handler
