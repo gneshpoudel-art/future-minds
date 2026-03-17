@@ -29,6 +29,8 @@ app.use(helmet({
 
 // CORS - handle production and development domains
 const fallbackOrigins = [
+    'https://futureminds.edu.np',
+    'https://www.futureminds.edu.np',
     'https://future-minds.onrender.com',
     'https://future-mindss.onrender.com',
     'http://localhost:8080',
