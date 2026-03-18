@@ -158,13 +158,13 @@ const Contact = () => {
             {/* Form */}
             <div className="lg:col-span-2">
               <div className="flex gap-3 mb-8">
-                {(["inquiry", "appointment"] as const).map((t) => (
+                {(["inquiry", "appointment"] as const).map((type) => (
                   <button
-                    key={t}
-                    onClick={() => setFormType(t)}
-                    className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${formType === t ? "gradient-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
+                    key={type}
+                    onClick={() => setFormType(type)}
+                    className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${formType === type ? "gradient-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
                   >
-                    {t === "inquiry" ? t("contact.form.inquiry") : t("contact.form.appointment")}
+                    {type === "inquiry" ? t("contact.form.inquiry") : t("contact.form.appointment")}
                   </button>
                 ))}
               </div>
