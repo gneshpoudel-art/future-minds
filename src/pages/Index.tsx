@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   GraduationCap, Users, Globe, Award, Compass, FileCheck, BookOpen,
   DollarSign, MapPin, ArrowRight, CheckCircle, Star, HelpCircle, Zap, Shield,
@@ -69,6 +70,7 @@ function AnimatedNum({ end, suffix, label, Icon }: { end: number; suffix: string
   );
 }
 const Index = () => {
+  const { t } = useLanguage();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
@@ -93,10 +95,10 @@ const Index = () => {
       {/* Hero */}
       <section ref={heroRef} className="relative min-h-[90vh] flex items-center overflow-hidden bg-muted">
         <motion.div style={{ y: heroY }} className="absolute inset-0">
-          <img 
-            src={heroBg} 
-            alt="Students celebrating" 
-            className="w-full h-full object-cover" 
+          <img
+            src={heroBg}
+            alt="Students celebrating"
+            className="w-full h-full object-cover"
             loading="eager"
             decoding="async"
           />
@@ -106,7 +108,7 @@ const Index = () => {
           <div className="max-w-2xl">
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
               <span className="inline-block mb-4 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-primary-foreground/15 text-primary-foreground border border-primary-foreground/20">
-                Nepal's Trusted Educational Partner
+                {t('hero.tagline')}
               </span>
             </motion.div>
             <motion.h1
@@ -115,8 +117,12 @@ const Index = () => {
               transition={{ duration: 0.6, delay: 0.15 }}
               className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight mb-6"
             >
-              We Inspire. We Guide.{" "}
-              <span className="text-cyan">We Empower.</span>
+              {t('hero.title').split('.').map((part, i) => (
+                <span key={i}>
+                  {part}{i < 2 ? '. ' : ''}
+                  {i === 2 && <span className="text-cyan">{part}</span>}
+                </span>
+              ))}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 30 }}
@@ -124,8 +130,7 @@ const Index = () => {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="text-lg text-primary-foreground/85 mb-8 leading-relaxed max-w-lg"
             >
-              Your journey to world-class education begins here. Future Minds Educational Consultancy is your gateway to
-              top universities across South Korea, UK, and Europe.
+              {t('hero.description')}
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -137,13 +142,13 @@ const Index = () => {
                 to="/contact"
                 className="inline-flex items-center gap-2 rounded-xl bg-primary-foreground px-7 py-3.5 text-sm font-semibold text-primary hover:bg-primary-foreground/90 transition-colors"
               >
-                Get Appointment <ArrowRight className="h-4 w-4" />
+                {t('hero.cta')} <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 to="/study-abroad/south-korea"
                 className="inline-flex items-center gap-2 rounded-xl border-2 border-primary-foreground/30 px-7 py-3.5 text-sm font-semibold text-primary-foreground hover:bg-primary-foreground/10 transition-colors"
               >
-                Explore Study Abroad
+                {t('hero.explore')}
               </Link>
             </motion.div>
           </div>
@@ -177,9 +182,9 @@ const Index = () => {
       <section className="py-20">
         <div className="container mx-auto px-6">
           <SectionHeading
-            badge="Why Choose Us"
-            title="Your Success Is Our Mission"
-            description="We combine expertise, technology, and personalized care to guide every student toward their dream university."
+            badge={t('why.badge')}
+            title={t('why.title')}
+            description={t('why.description')}
           />
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {whyUs.map((item, i) => {
@@ -195,7 +200,7 @@ const Index = () => {
       {/* Services — dynamic from DB */}
       <section className="py-20 bg-muted/50">
         <div className="container mx-auto px-6">
-          <SectionHeading badge="Our Services" title="Comprehensive Student Services" description="Everything you need for a successful academic journey abroad." />
+          <SectionHeading badge={t('services.badge')} title={t('services.title')} description={t('services.description')} />
           <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
             {services.map((s, i) => {
               const Icon = getIcon(s.icon);
@@ -213,7 +218,7 @@ const Index = () => {
                     <Icon className="h-6 w-6" />
                   </div>
                   <h3 className="font-semibold text-foreground text-sm mb-2">{s.title}</h3>
-                  <Link to="/services" className="text-xs text-primary font-medium hover:underline">Learn More</Link>
+                  <Link to="/services" className="text-xs text-primary font-medium hover:underline">{t('services.learnMore')}</Link>
                 </motion.div>
               );
             })}
@@ -224,7 +229,7 @@ const Index = () => {
       {/* Partner Universities — dynamic from DB */}
       <section className="py-20 overflow-hidden">
         <div className="container mx-auto px-6 mb-10">
-          <SectionHeading badge="Our Partners" title="Partner Universities" description="We collaborate with top-ranked institutions across the globe." />
+          <SectionHeading badge={t('partners.badge')} title={t('partners.title')} description={t('partners.description')} />
         </div>
         {partners.length > 0 && (
           <div className="relative">
@@ -253,7 +258,7 @@ const Index = () => {
       {/* Testimonials — dynamic from DB + submit form */}
       <section className="py-20 bg-muted/50">
         <div className="container mx-auto px-6">
-          <SectionHeading badge="Testimonials" title="What Our Students Say" description="Hear from students who achieved their dreams with Future Minds." />
+          <SectionHeading badge={t('testimonials.badge')} title={t('testimonials.title')} description={t('testimonials.description')} />
           <TestimonialSlider />
         </div>
       </section>
@@ -261,7 +266,7 @@ const Index = () => {
       {/* Gallery */}
       <section className="py-20">
         <div className="container mx-auto px-6">
-          <SectionHeading badge="Gallery" title="Moments That Matter" description="A visual journey through our community of learners and achievers." />
+          <SectionHeading badge={t('gallery.badge')} title={t('gallery.title')} description={t('gallery.description')} />
           <GalleryCarousel />
         </div>
       </section>
@@ -269,7 +274,7 @@ const Index = () => {
       {/* Branches — dynamic from DB */}
       <section className="py-20 bg-muted/50">
         <div className="container mx-auto px-6">
-          <SectionHeading badge="Our Branches" title="Find Us Near You" />
+          <SectionHeading badge={t('branches.badge')} title={t('branches.title')} />
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {branches.map((b, i) => (
               <motion.div
@@ -302,16 +307,16 @@ const Index = () => {
               viewport={{ once: true }}
               className="text-3xl md:text-4xl font-bold text-primary-foreground mb-4"
             >
-              Ready to Begin Your Journey?
+              {t('cta.title')}
             </motion.h2>
             <p className="text-primary-foreground/80 mb-8 max-w-lg mx-auto">
-              Take the first step toward your international education. Book a free consultation with our expert counsellors today.
+              {t('cta.description')}
             </p>
             <Link
               to="/contact"
               className="inline-flex items-center gap-2 rounded-xl bg-primary-foreground px-8 py-4 text-sm font-semibold text-primary hover:bg-primary-foreground/90 transition-colors"
             >
-              Book Free Consultation <ArrowRight className="h-4 w-4" />
+              {t('cta.button')} <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>

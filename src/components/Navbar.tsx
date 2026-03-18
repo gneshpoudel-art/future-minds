@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, Phone, Mail } from "lucide-react";
+import { Menu, X, ChevronDown, Phone, Mail, Globe } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import logo from "@/assets/logo.png";
 
 const navLinks = [
@@ -59,10 +60,66 @@ const navLinks = [
 ];
 
 const Navbar = () => {
+  const { language, setLanguage, t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const location = useLocation();
+
+  const navLinks = [
+    { label: t("nav.home"), path: "/" },
+    {
+      label: t("nav.about"),
+      path: "/about",
+      children: [
+        { label: "About Us", path: "/about" },
+        { label: "Mission & Vision", path: "/about#mission" },
+        { label: "Success Stories", path: "/about#success" },
+      ],
+    },
+    {
+      label: t("nav.services"),
+      path: "/services",
+      children: [
+        { label: "Career Counselling", path: "/services#career" },
+        { label: "Test Preparation", path: "/services#test" },
+        { label: "Visa Processing", path: "/services#visa" },
+        { label: "Admission Guidance", path: "/services#admission" },
+        { label: "Finance Assistance", path: "/services#finance" },
+      ],
+    },
+    {
+      label: t("nav.studyAbroad"),
+      path: "/study-abroad/south-korea",
+      children: [
+        { label: "Study in South Korea", path: "/study-abroad/south-korea" },
+        { label: "Study in UK", path: "/study-abroad/uk" },
+        { label: "Study in Europe", path: "/study-abroad/europe" },
+      ],
+    },
+    {
+      label: t("nav.language"),
+      path: "/language",
+      children: [
+        { label: "IELTS", path: "/language#ielts" },
+        { label: "TOEFL", path: "/language#toefl" },
+        { label: "PTE", path: "/language#pte" },
+        { label: "EPS / KLPT / TOPIK", path: "/language#korean" },
+      ],
+    },
+    {
+      label: t("nav.resources"),
+      path: "/resources",
+      children: [
+        { label: "Blog", path: "/resources#blog" },
+        { label: "Gallery", path: "/gallery" },
+        { label: "FAQs", path: "/resources#faq" },
+        { label: "News & Events", path: "/resources#events" },
+      ],
+    },
+    { label: t("nav.contact"), path: "/contact" },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -84,13 +141,47 @@ const Navbar = () => {
             <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> +977-01-4567890</span>
             <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> info@futureminds.edu.np</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
+            <div className="relative" onMouseEnter={() => setLangDropdownOpen(true)} onMouseLeave={() => setLangDropdownOpen(false)}>
+              <button className="flex items-center gap-1.5 transition-colors hover:text-white/80">
+                <Globe className="h-3.5 w-3.5" />
+                <span className="font-medium uppercase tracking-wider">{language === 'en' ? 'English' : '한국어'}</span>
+                <ChevronDown className={`h-3 w-3 transition-transform ${langDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {langDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    className="absolute left-0 top-full pt-2 z-[60]"
+                  >
+                    <div className="bg-slate-900 border border-white/10 rounded-lg shadow-2xl p-1 min-w-[120px]">
+                      <button
+                        onClick={() => { setLanguage('en'); setLangDropdownOpen(false); }}
+                        className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${language === 'en' ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                      >
+                        English
+                      </button>
+                      <button
+                        onClick={() => { setLanguage('ko'); setLangDropdownOpen(false); }}
+                        className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${language === 'ko' ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                      >
+                        한국어
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            <span className="opacity-30">|</span>
             <span>Kathmandu</span>
-            <span className="opacity-50">|</span>
+            <span className="opacity-30">|</span>
             <span>Banepa</span>
-            <span className="opacity-50">|</span>
+            <span className="opacity-30">|</span>
             <span>Pokhara</span>
-            <span className="opacity-50">|</span>
+            <span className="opacity-30">|</span>
             <span>Seoul</span>
           </div>
         </div>
@@ -155,7 +246,7 @@ const Navbar = () => {
               to="/contact"
               className="ml-3 gradient-primary rounded-lg px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
             >
-              Get Appointment
+              {t("nav.appointment")}
             </Link>
           </nav>
 
@@ -225,11 +316,29 @@ const Navbar = () => {
                     </AnimatePresence>
                   </div>
                 ))}
+                <div className="pt-4 border-t border-border mt-4">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 px-2">Language</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setLanguage('en')}
+                      className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${language === 'en' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-muted text-foreground'}`}
+                    >
+                      English
+                    </button>
+                    <button
+                      onClick={() => setLanguage('ko')}
+                      className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${language === 'ko' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-muted text-foreground'}`}
+                    >
+                      한국어
+                    </button>
+                  </div>
+                </div>
+
                 <Link
                   to="/contact"
-                  className="block mt-4 gradient-primary rounded-lg px-5 py-3 text-center text-sm font-semibold text-primary-foreground"
+                  className="block mt-6 gradient-primary rounded-lg px-5 py-3 text-center text-sm font-semibold text-primary-foreground"
                 >
-                  Get Appointment
+                  {t("nav.appointment")}
                 </Link>
               </div>
             </motion.div>

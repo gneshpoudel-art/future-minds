@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Send, MapPin, Phone, Mail, Loader2, CheckCircle } from "lucide-react";
 import SectionHeading from "@/components/SectionHeading";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import emailjs from "@emailjs/browser";
 import { useEffect } from "react";
 
@@ -15,6 +16,7 @@ interface Branch {
 }
 
 const Contact = () => {
+  const { t } = useLanguage();
   const short = (text: string, len: number) => {
     if (!text) return "";
     return text.length > len ? text.substring(0, len) + "..." : text;
@@ -53,7 +55,7 @@ const Contact = () => {
 
     if (!selectedBranch && branches.length > 0) {
       setLoading(false);
-      toast({ title: "Error", description: "Please select a branch", variant: "destructive" });
+      toast({ title: t("contact.toast.error"), description: t("contact.toast.selectBranch"), variant: "destructive" });
       return;
     }
 
@@ -110,14 +112,14 @@ const Contact = () => {
           publicKey
         );
         toast({
-          title: "Success!",
-          description: "Your message has been received and routed to the " + selectedBranchName + " branch.",
+          title: t("contact.toast.success"),
+          description: t("contact.toast.routed").replace("{branch}", selectedBranchName),
         });
       } catch (emailErr) {
         console.error("EmailJS error:", emailErr);
         toast({
-          title: "Message Received",
-          description: "Your inquiry has been saved in our system. However, the email notification failed. We will still contact you soon.",
+          title: t("contact.toast.received"),
+          description: t("contact.toast.savedInfo"),
           variant: "default",
         });
       }
@@ -128,7 +130,7 @@ const Contact = () => {
     } catch (error) {
       console.error("Submission error:", error);
       toast({
-        title: "Error",
+        title: t("contact.toast.error"),
         description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       });
@@ -141,8 +143,12 @@ const Contact = () => {
     <div>
       <section className="gradient-primary py-20 lg:py-28">
         <div className="container mx-auto px-6 text-center">
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">Contact Us</motion.h1>
-          <p className="text-primary-foreground/80 max-w-2xl mx-auto">Get in touch with our expert counsellors. We are here to help you every step of the way.</p>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+            {t('contact.hero.title')}
+          </motion.h1>
+          <p className="text-primary-foreground/80 max-w-2xl mx-auto">
+            {t('contact.hero.description')}
+          </p>
         </div>
       </section>
 
@@ -158,7 +164,7 @@ const Contact = () => {
                     onClick={() => setFormType(t)}
                     className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${formType === t ? "gradient-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
                   >
-                    {t === "inquiry" ? "General Inquiry" : "Book Appointment"}
+                    {t === "inquiry" ? t("contact.form.inquiry") : t("contact.form.appointment")}
                   </button>
                 ))}
               </div>
@@ -166,23 +172,23 @@ const Contact = () => {
               <form className="space-y-5" onSubmit={handleSubmit}>
                 <div className="grid md:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-1.5">Full Name</label>
-                    <input name="fullName" type="text" required maxLength={100} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Your full name" />
+                    <label className="block text-sm font-medium text-foreground mb-1.5">{t('contact.form.fullName')}</label>
+                    <input name="fullName" type="text" required maxLength={100} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder={t('contact.form.fullNamePlaceholder')} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-1.5">Email</label>
-                    <input name="email" type="email" required maxLength={255} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="your@email.com" />
+                    <label className="block text-sm font-medium text-foreground mb-1.5">{t('contact.form.email')}</label>
+                    <input name="email" type="email" required maxLength={255} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder={t('contact.form.emailPlaceholder')} />
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-1.5">Phone</label>
-                    <input name="phone" type="tel" required maxLength={20} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="+977-XXXXXXXXXX" />
+                    <label className="block text-sm font-medium text-foreground mb-1.5">{t('contact.form.phone')}</label>
+                    <input name="phone" type="tel" required maxLength={20} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder={t('contact.form.phonePlaceholder')} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-1.5">Select Branch</label>
+                    <label className="block text-sm font-medium text-foreground mb-1.5">{t('contact.form.selectBranch')}</label>
                     <select name="branch" required className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30">
-                      <option value="">Select a branch</option>
+                      <option value="">{t('contact.form.selectBranchPlaceholder')}</option>
                       {branches.map(b => (
                         <option key={b.id} value={b.branch_name}>{b.branch_name}</option>
                       ))}
@@ -191,46 +197,46 @@ const Contact = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">
-                    {formType === "appointment" ? "Preferred Date" : "Subject / Preferred Country"}
+                    {formType === "appointment" ? t("contact.form.preferredDate") : t("contact.form.subject")}
                   </label>
                   {formType === "appointment" ? (
                     <input name="preferredDate" type="date" required className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
                   ) : (
-                    <input name="subject" type="text" required maxLength={200} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="e.g. Study in South Korea" />
+                    <input name="subject" type="text" required maxLength={200} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder={t('contact.form.subjectPlaceholder')} />
                   )}
                 </div>
                 {formType === "appointment" && (
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-1.5">Service Interested In</label>
+                    <label className="block text-sm font-medium text-foreground mb-1.5">{t('contact.form.serviceInterest')}</label>
                     <select name="service" required className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30">
-                      <option value="">Select a service</option>
-                      <option value="career">Career Counselling</option>
-                      <option value="test">Test Preparation</option>
-                      <option value="visa">Visa Processing</option>
-                      <option value="admission">Admission Guidance</option>
-                      <option value="finance">Finance Assistance</option>
+                      <option value="">{t('contact.form.servicePlaceholder')}</option>
+                      <option value="career">{t('services.career.title')}</option>
+                      <option value="test">{t('services.test.title')}</option>
+                      <option value="visa">{t('services.visa.title')}</option>
+                      <option value="admission">{t('services.admission.title')}</option>
+                      <option value="finance">{t('services.finance.title')}</option>
                     </select>
                   </div>
                 )}
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Message</label>
-                  <textarea name="message" required maxLength={1000} rows={5} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" placeholder="Tell us more..." />
+                  <label className="block text-sm font-medium text-foreground mb-1.5">{t('contact.form.message')}</label>
+                  <textarea name="message" required maxLength={1000} rows={5} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" placeholder={t('contact.form.messagePlaceholder')} />
                 </div>
                 <button type="submit" disabled={loading} className="inline-flex items-center gap-2 gradient-primary text-primary-foreground rounded-xl px-8 py-3.5 font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
                   {loading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Sending...
+                      {t('contact.form.sending')}
                     </>
                   ) : submitted ? (
                     <>
                       <CheckCircle className="h-4 w-4" />
-                      Sent Successfully
+                      {t('contact.form.sent')}
                     </>
                   ) : (
                     <>
                       <Send className="h-4 w-4" />
-                      {formType === "appointment" ? "Book Appointment" : "Send Message"}
+                      {formType === "appointment" ? t("contact.form.book") : t("contact.form.sendMessage")}
                     </>
                   )}
                 </button>
@@ -239,7 +245,7 @@ const Contact = () => {
 
             {/* Sidebar */}
             <div className="space-y-6">
-              <SectionHeading title="Our Branches" centered={false} />
+              <SectionHeading title={t('contact.sidebar.branches')} centered={false} />
               {branches.length > 0 ? branches.map((b) => (
                 <div key={b.id} className="rounded-xl bg-card p-5 shadow-card border border-border">
                   <p className="font-semibold text-foreground text-sm mb-2">{b.branch_name}</p>
@@ -261,20 +267,20 @@ const Contact = () => {
                   </div>
                 </div>
               )) : (
-                <p className="text-sm text-muted-foreground italic">Loading branches...</p>
+                <p className="text-sm text-muted-foreground italic">{t('contact.sidebar.loading')}</p>
               )}
 
               <div className="rounded-xl bg-card p-5 shadow-card border border-border">
-                <p className="font-semibold text-foreground text-sm mb-3">General Contact</p>
+                <p className="font-semibold text-foreground text-sm mb-3">{t('contact.sidebar.general')}</p>
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-primary" /><span>info@futureminds.edu.np</span></div>
-                  <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-primary" /><span>Banepa, Kavrepalanchok, Nepal</span></div>
+                  <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-primary" /><span>{t('footer.address.banepa')}</span></div>
                 </div>
               </div>
 
               {/* Map placeholder */}
               <div className="rounded-xl bg-muted h-48 flex items-center justify-center border border-border">
-                <p className="text-sm text-muted-foreground">Google Map Integration</p>
+                <p className="text-sm text-muted-foreground">{t('contact.sidebar.map')}</p>
               </div>
             </div>
           </div>

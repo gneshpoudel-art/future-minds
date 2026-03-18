@@ -3,40 +3,58 @@ import { ChevronDown, Download, Calendar, BookOpen } from "lucide-react";
 import { useState } from "react";
 import SectionHeading from "@/components/SectionHeading";
 import GalleryCarousel from "@/components/GalleryCarousel";
-
-const faqs = [
-  { q: "What countries can I study in through Future Minds?", a: "We currently facilitate admissions to South Korea, United Kingdom, and various European countries including Germany, France, Netherlands, and more." },
-  { q: "What is the visa success rate?", a: "We maintain a 98% visa success rate across all destinations, thanks to our experienced visa processing team." },
-  { q: "Do you offer scholarships?", a: "We guide students in finding and applying for scholarships including KGSP, Chevening, Erasmus Mundus, and university-specific awards." },
-  { q: "How long does the admission process take?", a: "The timeline varies by destination, but typically 2-4 months from initial counselling to receiving an admission letter." },
-  { q: "Do you provide post-arrival support?", a: "Yes, our Seoul branch provides comprehensive post-arrival support including airport pickup, orientation, and ongoing assistance." },
-];
-
-const blogPosts = [
-  { title: "Top 10 Universities in South Korea for 2024", category: "Study Abroad", date: "Dec 15, 2024" },
-  { title: "IELTS vs TOEFL: Which Test Should You Take?", category: "Test Prep", date: "Dec 10, 2024" },
-  { title: "Complete Guide to Korean Student Visa", category: "Visa Guide", date: "Dec 5, 2024" },
-  { title: "Scholarship Opportunities in Europe", category: "Scholarships", date: "Nov 28, 2024" },
-  { title: "Life as a Nepali Student in Seoul", category: "Student Life", date: "Nov 20, 2024" },
-  { title: "How to Write a Winning Statement of Purpose", category: "Admissions", date: "Nov 15, 2024" },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Resources = () => {
+  const { t } = useLanguage();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const faqs = [
+    { q: t("resources.faq.q1"), a: t("resources.faq.a1") },
+    { q: t("resources.faq.q2"), a: t("resources.faq.a2") },
+    { q: t("resources.faq.q3"), a: t("resources.faq.a3") },
+    { q: t("resources.faq.q4"), a: t("resources.faq.a4") },
+    { q: t("resources.faq.q5"), a: t("resources.faq.a5") },
+  ];
+
+  const blogPosts = [
+    { title: t("resources.blog.post1.title"), category: t("resources.blog.cat.study"), date: "Dec 15, 2024" },
+    { title: t("resources.blog.post2.title"), category: t("resources.blog.cat.prep"), date: "Dec 10, 2024" },
+    { title: t("resources.blog.post3.title"), category: t("resources.blog.cat.visa"), date: "Dec 5, 2024" },
+    { title: t("resources.blog.post4.title"), category: t("resources.blog.cat.scholarships"), date: "Nov 28, 2024" },
+    { title: t("resources.blog.post5.title"), category: t("resources.blog.cat.life"), date: "Nov 20, 2024" },
+    { title: t("resources.blog.post6.title"), category: t("resources.blog.cat.admissions"), date: "Nov 15, 2024" },
+  ];
+
+  const events = [
+    { title: t("resources.event1.title"), date: "March 15, 2025", desc: t("resources.event1.desc") },
+    { title: t("resources.event2.title"), date: "March 22, 2025", desc: t("resources.event2.desc") },
+    { title: t("resources.event3.title"), date: "April 5, 2025", desc: t("resources.event3.desc") },
+  ];
+
+  const downloads = [
+    t("resources.downloads.handbook"),
+    t("resources.downloads.checklist"),
+    t("resources.downloads.guide")
+  ];
 
   return (
     <div>
       <section className="gradient-primary py-20 lg:py-28">
         <div className="container mx-auto px-6 text-center">
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">Resources</motion.h1>
-          <p className="text-primary-foreground/80 max-w-2xl mx-auto">Explore our blog, gallery, FAQs, and downloadable resources.</p>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+            {t('resources.hero.title')}
+          </motion.h1>
+          <p className="text-primary-foreground/80 max-w-2xl mx-auto">
+            {t('resources.hero.description')}
+          </p>
         </div>
       </section>
 
       {/* Blog */}
       <section id="blog" className="py-20">
         <div className="container mx-auto px-6">
-          <SectionHeading badge="Blog" title="Latest Articles" description="Stay informed with our latest insights and guides." />
+          <SectionHeading badge={t('resources.blog.badge')} title={t('resources.blog.title')} description={t('resources.blog.description')} />
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {blogPosts.map((post, i) => (
               <motion.article key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }} className="rounded-2xl bg-card shadow-card border border-border overflow-hidden group hover:shadow-elevated transition-all cursor-pointer">
@@ -60,7 +78,7 @@ const Resources = () => {
       {/* Gallery */}
       <section className="py-20 bg-muted/50">
         <div className="container mx-auto px-6">
-          <SectionHeading badge="Gallery" title="Photo Gallery" />
+          <SectionHeading badge={t('resources.gallery.badge')} title={t('resources.gallery.title')} />
           <GalleryCarousel />
         </div>
       </section>
@@ -68,9 +86,9 @@ const Resources = () => {
       {/* Downloads */}
       <section className="py-20">
         <div className="container mx-auto px-6">
-          <SectionHeading badge="Downloads" title="Downloadable Resources" />
+          <SectionHeading badge={t('resources.downloads.badge')} title={t('resources.downloads.title')} />
           <div className="grid md:grid-cols-3 gap-5 max-w-3xl mx-auto">
-            {["Student Handbook 2024", "Visa Checklist", "Scholarship Guide"].map((d, i) => (
+            {downloads.map((d, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="flex items-center gap-3 rounded-xl bg-card p-5 shadow-card border border-border cursor-pointer hover:shadow-elevated transition-all">
                 <Download className="h-5 w-5 text-primary shrink-0" />
                 <span className="text-sm font-medium text-foreground">{d}</span>
@@ -83,7 +101,7 @@ const Resources = () => {
       {/* FAQ */}
       <section id="faq" className="py-20 bg-muted/50">
         <div className="container mx-auto px-6 max-w-3xl">
-          <SectionHeading badge="FAQs" title="Frequently Asked Questions" />
+          <SectionHeading badge={t('resources.faq.badge')} title={t('resources.faq.title')} />
           <div className="space-y-3">
             {faqs.map((faq, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }} className="rounded-xl bg-card border border-border overflow-hidden">
@@ -105,13 +123,9 @@ const Resources = () => {
       {/* Events */}
       <section id="events" className="py-20">
         <div className="container mx-auto px-6">
-          <SectionHeading badge="Events" title="News & Events" description="Stay updated with our latest activities and announcements." />
+          <SectionHeading badge={t('resources.events.badge')} title={t('resources.events.title')} description={t('resources.events.description')} />
           <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            {[
-              { title: "Education Fair 2025", date: "March 15, 2025", desc: "Join us at the annual education fair in Kathmandu." },
-              { title: "IELTS Workshop", date: "March 22, 2025", desc: "Free IELTS preparation workshop at Banepa office." },
-              { title: "Korea Info Session", date: "April 5, 2025", desc: "Everything you need to know about studying in South Korea." },
-            ].map((e, i) => (
+            {events.map((e, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="rounded-2xl bg-card p-6 shadow-card border border-border">
                 <div className="flex items-center gap-2 text-xs text-primary font-medium mb-3">
                   <Calendar className="h-3.5 w-3.5" />

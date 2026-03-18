@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Target, Eye, Heart, Shield, TrendingUp, Lightbulb } from "lucide-react";
 import SectionHeading from "@/components/SectionHeading";
 
@@ -12,6 +13,7 @@ interface LeadershipMessage {
 }
 
 const About = () => {
+  const { t } = useLanguage();
   const [leadership, setLeadership] = useState<LeadershipMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,9 +40,9 @@ const About = () => {
       <section className="gradient-primary py-20 lg:py-28">
         <div className="container mx-auto px-6 text-center">
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
-            About Future Minds
+            {t('about.hero.title')}
           </motion.h1>
-          <p className="text-primary-foreground/80 max-w-2xl mx-auto">Transforming lives through education since our founding, we have empowered thousands of students to achieve their international academic dreams.</p>
+          <p className="text-primary-foreground/80 max-w-2xl mx-auto">{t('about.hero.description')}</p>
         </div>
       </section>
 
@@ -49,8 +51,8 @@ const About = () => {
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-8">
             {[
-              { icon: Target, title: "Our Mission", text: "To provide world-class educational consultancy services that empower students from Nepal to access global academic opportunities, fostering personal growth and professional success." },
-              { icon: Eye, title: "Our Vision", text: "To be the most trusted and impactful educational consultancy in South Asia, bridging the gap between aspiring students and top international universities." },
+              { icon: Target, title: t("about.mission.title"), text: t("about.mission.text") },
+              { icon: Eye, title: t("about.vision.title"), text: t("about.vision.text") },
             ].map((item, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }} className="rounded-2xl bg-card p-8 shadow-card border border-border">
                 <div className="h-12 w-12 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground mb-5">
@@ -67,7 +69,7 @@ const About = () => {
       {/* Leadership Messages */}
       <section className="py-20 bg-muted/50 overflow-hidden">
         <div className="container mx-auto px-6">
-          <SectionHeading badge="Leadership" title="Messages from the Desk" centered={true} />
+          <SectionHeading badge={t("about.leadership.badge")} title={t("about.leadership.title")} centered={true} />
 
           {loading ? (
             <div className="flex justify-center p-20">
@@ -105,7 +107,7 @@ const About = () => {
               ))}
             </div>
           ) : (
-            <p className="text-center text-muted-foreground italic">No leadership messages available yet.</p>
+            <p className="text-center text-muted-foreground italic">{t("about.leadership.none")}</p>
           )}
         </div>
       </section>
@@ -113,13 +115,13 @@ const About = () => {
       {/* Core Values */}
       <section className="py-20">
         <div className="container mx-auto px-6">
-          <SectionHeading badge="Our Values" title="What We Stand For" />
+          <SectionHeading badge={t("about.values.badge")} title={t("about.values.title")} />
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: Heart, title: "Student First", desc: "Every decision we make centres around student success and well-being." },
-              { icon: Shield, title: "Integrity", desc: "Transparent processes and honest guidance at every step." },
-              { icon: TrendingUp, title: "Excellence", desc: "We strive for the highest standards in service delivery." },
-              { icon: Lightbulb, title: "Innovation", desc: "Embracing new approaches to educational consultancy." },
+              { icon: Heart, title: t("about.values.student.title"), desc: t("about.values.student.desc") },
+              { icon: Shield, title: t("about.values.integrity.title"), desc: t("about.values.integrity.desc") },
+              { icon: TrendingUp, title: t("about.values.excellence.title"), desc: t("about.values.excellence.desc") },
+              { icon: Lightbulb, title: t("about.values.innovation.title"), desc: t("about.values.innovation.desc") },
             ].map((v, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center p-6 rounded-2xl bg-card shadow-card border border-border">
                 <div className="h-12 w-12 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground mx-auto mb-4">
@@ -136,12 +138,12 @@ const About = () => {
       {/* Success Stories */}
       <section id="success" className="py-20 bg-muted/50">
         <div className="container mx-auto px-6">
-          <SectionHeading badge="Success Stories" title="Our Students, Our Pride" description="Real stories from students who achieved their dreams with Future Minds." />
+          <SectionHeading badge={t("about.success.badge")} title={t("about.success.title")} description={t("about.success.description")} />
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { name: "Binod K.", uni: "Seoul National University", text: "From Banepa to Seoul - Future Minds made it possible. Their Korean language training and visa support were exceptional." },
-              { name: "Anita R.", uni: "University of Edinburgh", text: "I received a full scholarship thanks to the guidance of Future Minds. They helped with every document and interview prep." },
-              { name: "Sujan M.", uni: "TU Munich", text: "Studying engineering in Germany was my dream. Future Minds helped me navigate the complex European admission process smoothly." },
+              { name: "Binod K.", uni: "Seoul National University", text: t("about.stories.binod.text") },
+              { name: "Anita R.", uni: "University of Edinburgh", text: t("about.stories.anita.text") },
+              { name: "Sujan M.", uni: "TU Munich", text: t("about.stories.sujan.text") },
             ].map((s, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="rounded-2xl bg-card p-7 shadow-card border border-border">
                 <p className="text-muted-foreground leading-relaxed mb-5 italic">"{s.text}"</p>

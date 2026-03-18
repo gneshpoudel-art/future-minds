@@ -1,31 +1,33 @@
 import { motion } from "framer-motion";
 import { Compass, BookOpen, FileCheck, GraduationCap, DollarSign, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import SectionHeading from "@/components/SectionHeading";
 
-const services = [
-  { id: "career", icon: Compass, title: "Career Counselling", desc: "Expert guidance to help you choose the right course, university, and country based on your academic profile, interests, and career goals.", details: "Our experienced counsellors conduct in-depth assessments of your academic background, career aspirations, and personal preferences to recommend the best-fit programs and institutions. We provide personalized roadmaps covering timeline, requirements, and budget planning." },
-  { id: "test", icon: BookOpen, title: "Test Preparation", desc: "Comprehensive coaching for IELTS, TOEFL, PTE, TOPIK, EPS-TOPIK, and KLPT with experienced instructors.", details: "State-of-the-art facilities, mock tests, and personalized feedback ensure you achieve your target score. Our classes include small batch sizes, flexible timings, and access to extensive practice materials. We track progress through regular assessments." },
-  { id: "visa", icon: FileCheck, title: "Visa Processing", desc: "End-to-end visa application support with a 98% success rate across all destinations.", details: "From document preparation to interview coaching, our visa experts handle every aspect of the process. We maintain up-to-date knowledge of embassy requirements and immigration policies to ensure your application is flawless." },
-  { id: "admission", icon: GraduationCap, title: "Admission Guidance", desc: "Complete support for university applications including SOP writing, document verification, and application tracking.", details: "We assist with selecting universities, preparing application materials, writing compelling statements of purpose, and managing deadlines. Our partnerships with 120+ universities often provide fast-track admission pathways." },
-  { id: "finance", icon: DollarSign, title: "Finance Assistance", desc: "Guidance on scholarships, education loans, and financial planning for your study abroad journey.", details: "We help identify scholarship opportunities, prepare compelling scholarship applications, and connect students with trusted financial institutions for education loans. Our team assists with financial documentation required by embassies." },
-];
-
 const Services = () => {
+  const { t } = useLanguage();
   const [expanded, setExpanded] = useState<string | null>(null);
-  
+
+  const services = [
+    { id: "career", icon: Compass, title: t("services.career.title"), desc: t("services.career.desc"), details: t("services.career.details") },
+    { id: "test", icon: BookOpen, title: t("services.test.title"), desc: t("services.test.desc"), details: t("services.test.details") },
+    { id: "visa", icon: FileCheck, title: t("services.visa.title"), desc: t("services.visa.desc"), details: t("services.visa.details") },
+    { id: "admission", icon: GraduationCap, title: t("services.admission.title"), desc: t("services.admission.desc"), details: t("services.admission.details") },
+    { id: "finance", icon: DollarSign, title: t("services.finance.title"), desc: t("services.finance.desc"), details: t("services.finance.details") },
+  ];
+
   return (
     <div>
       <section className="gradient-primary py-20 lg:py-28">
         <div className="container mx-auto px-6 text-center">
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">Our Services</motion.h1>
-          <p className="text-primary-foreground/80 max-w-2xl mx-auto">Comprehensive support at every stage of your academic journey abroad.</p>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">{t('services.hero.title')}</motion.h1>
+          <p className="text-primary-foreground/80 max-w-2xl mx-auto">{t('services.hero.description')}</p>
         </div>
       </section>
 
       <section className="py-20">
         <div className="container mx-auto px-6 max-w-4xl">
-          <SectionHeading title="What We Offer" description="Each service is designed to address specific needs in your study abroad journey." />
+          <SectionHeading title={t('services.offer.title')} description={t('services.offer.description')} />
           <div className="space-y-4">
             {services.map((s, i) => (
               <motion.div
