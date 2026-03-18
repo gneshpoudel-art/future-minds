@@ -18,35 +18,41 @@ import Resources from "./pages/Resources";
 import Gallery from "./pages/Gallery";
 import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
+import LanguageBar from "./components/LanguageBar";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ScrollToTop />
-        <Navbar />
-        <main className="min-h-screen">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/study-abroad/:country" element={<StudyAbroad />} />
-            <Route path="/language" element={<Language />} />
-            <Route path="/visa-records" element={<VisaRecords />} />
-            <Route path="/student-care" element={<StudentCare />} />
-            <Route path="/branches" element={<Branches />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/resources" element={<Resources />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-        <Footer />
-      </BrowserRouter>
+      <LanguageProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <ScrollToTop />
+          <Navbar />
+          <LanguageBar />
+          <main className="min-h-screen">
+            <Routes>
+              {/* ... routes ... */}
+              <Route path="/" element={<Index />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/study-abroad/:country" element={<StudyAbroad />} />
+              <Route path="/language" element={<Language />} />
+              <Route path="/visa-records" element={<VisaRecords />} />
+              <Route path="/student-care" element={<StudentCare />} />
+              <Route path="/branches" element={<Branches />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/resources" element={<Resources />} />
+              <Route path="/gallery" element={<Gallery />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+          <Footer />
+        </BrowserRouter>
+      </LanguageProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

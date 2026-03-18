@@ -72,6 +72,7 @@ const Contact = () => {
 
     try {
       // 1. Save to database
+      console.log("[Contact] Submitting to DB:", data);
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -80,15 +81,16 @@ const Contact = () => {
 
       if (!response.ok) {
         const error = await response.json();
+        console.error("[Contact] DB Error:", error);
         throw new Error(error.error || "Failed to send message");
       }
 
       // 2. Send via EmailJS
-      // Using provided credentials:
       const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_4x2s3hs";
       const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_9nbcy9c";
       const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "z_c7eJCMqRndObBEh";
 
+      console.log("[Contact] Sending to EmailJS with to_email:", data.to_email);
       try {
         await emailjs.send(
           serviceId,
@@ -97,10 +99,13 @@ const Contact = () => {
             name: data.full_name,
             email: data.email,
             phone: data.phone,
-            country: formData.get("subject") || data.service || "N/A",
+            country: data.subject || "N/A",
             branch: data.branch,
+            preferred_date: data.preferred_date || "N/A",
+            service: data.service || "N/A",
             message: data.message,
-            to_email: data.to_email
+            to_email: data.to_email,
+            form_type: data.form_type
           },
           publicKey
         );

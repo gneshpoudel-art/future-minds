@@ -85,7 +85,6 @@ const Navbar = () => {
             <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> info@futureminds.edu.np</span>
           </div>
           <div className="flex items-center gap-4">
-            <div id="google_translate_element"></div>
             <span>Kathmandu</span>
             <span className="opacity-50">|</span>
             <span>Banepa</span>
@@ -99,9 +98,8 @@ const Navbar = () => {
 
       {/* Main nav */}
       <header
-        className={`sticky top-0 z-50 transition-all duration-300 ${
-          scrolled ? "glass-strong shadow-card" : "bg-card/80 backdrop-blur-sm"
-        }`}
+        className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? "glass-strong shadow-card" : "bg-card/80 backdrop-blur-sm"
+          }`}
       >
         <div className="container mx-auto flex items-center justify-between px-6 py-3">
           <Link to="/" className="flex items-center gap-2.5">
@@ -123,9 +121,8 @@ const Navbar = () => {
               >
                 <Link
                   to={link.path}
-                  className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors hover:bg-primary/5 hover:text-primary ${
-                    location.pathname === link.path ? "text-primary" : "text-foreground/80"
-                  }`}
+                  className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors hover:bg-primary/5 hover:text-primary ${location.pathname === link.path ? "text-primary" : "text-foreground/80"
+                    }`}
                 >
                   {link.label}
                   {link.children && <ChevronDown className="h-3.5 w-3.5" />}
@@ -200,9 +197,8 @@ const Navbar = () => {
                           className="p-2"
                         >
                           <ChevronDown
-                            className={`h-4 w-4 transition-transform ${
-                              activeDropdown === link.label ? "rotate-180" : ""
-                            }`}
+                            className={`h-4 w-4 transition-transform ${activeDropdown === link.label ? "rotate-180" : ""
+                              }`}
                           />
                         </button>
                       )}
