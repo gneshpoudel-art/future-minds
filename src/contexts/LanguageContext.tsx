@@ -53,22 +53,25 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem('language', language);
     // Update HTML lang attribute
     document.documentElement.lang = language;
+
     // Update Google Translate
-    if (language === 'ko') {
-      // Trigger Google Translate for Korean
+    const triggerGoogleTranslate = () => {
       const element = document.querySelector('.goog-te-combo') as HTMLSelectElement;
       if (element) {
-        element.value = 'ko';
+        element.value = language;
         element.dispatchEvent(new Event('change'));
       }
-    } else {
-      // Reset to English
-      const element = document.querySelector('.goog-te-combo') as HTMLSelectElement;
-      if (element) {
-        element.value = 'en';
-        element.dispatchEvent(new Event('change'));
-      }
-    }
+    };
+
+    // Try multiple times as the widget loads asynchronously
+    triggerGoogleTranslate();
+    const timer = setInterval(triggerGoogleTranslate, 1000);
+    const timeout = setTimeout(() => clearInterval(timer), 5000);
+
+    return () => {
+      clearInterval(timer);
+      clearTimeout(timeout);
+    };
   }, [language]);
 
   const setLanguage = (lang: Language) => {
