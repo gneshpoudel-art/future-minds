@@ -53,9 +53,13 @@ const Contact = () => {
     const selectedBranchName = formData.get("branch") as string;
     const selectedBranch = branches.find(b => b.branch_name === selectedBranchName);
 
-    if (!selectedBranch && branches.length > 0) {
+    if (!selectedBranchName || !selectedBranch) {
       setLoading(false);
-      toast({ title: t("contact.toast.error"), description: t("contact.toast.selectBranch"), variant: "destructive" });
+      toast({
+        title: t("contact.toast.error"),
+        description: t("contact.toast.selectBranch"),
+        variant: "destructive"
+      });
       return;
     }
 
