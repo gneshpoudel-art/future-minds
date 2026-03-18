@@ -263,7 +263,7 @@ function loadGallery() {
 // ── Branches ──────────────────────────────────────────────────────────────
 function loadBranches() {
     loadCRUD('/api/branches', 'tbl-branches', r =>
-        `<tr><td>${esc(r.branch_name)}</td><td>${esc(r.address)}</td><td>${esc(r.phone)}</td><td>${r.display_order}</td>
+        `<tr><td>${esc(r.branch_name)}</td><td>${esc(r.email)}</td><td>${esc(r.address)}</td><td>${esc(r.phone)}</td><td>${r.display_order}</td>
     <td><button class="btn btn-outl btn-sm" onclick="openModal('branches',${r.id})">Edit</button>
     <button class="btn btn-danger btn-sm" onclick="deleteItem('/api/branches',${r.id},loadBranches)">Del</button></td></tr>`,
         'branches'
@@ -334,7 +334,7 @@ function loadDownloads() {
 // ── Contacts ──────────────────────────────────────────────────────────────
 function loadContacts() {
     loadCRUD('/api/contact', 'tbl-contacts', r =>
-        `<tr><td>${esc(r.full_name)}</td><td>${esc(r.email)}</td><td>${esc(r.phone)}</td><td>${short(r.message, 60)}</td><td>${esc(r.form_type)}</td>
+        `<tr><td>${esc(r.full_name)}</td><td>${esc(r.email)}</td><td>${esc(r.branch || '–')}</td><td>${esc(r.phone)}</td><td>${short(r.message, 60)}</td><td>${esc(r.form_type)}</td>
     <td>${r.created_at?.slice(0, 10)}</td>
     <td><button class="btn btn-danger btn-sm" onclick="deleteItem('/api/contact',${r.id},loadContacts)">Del</button></td></tr>`,
         'contacts'
@@ -385,7 +385,8 @@ const modalForms = {
     <div class="form-row"><label>Comment</label><textarea id="mf-comment">${esc(d?.comment || '')}</textarea></div>
     <div class="form-row"><label>Display Order</label><input type="number" id="mf-order" value="${d?.display_order || 0}"/></div>`,
 
-    branches: (d) => `<div class="form-row"><label>Branch Name *</label><input id="mf-branch_name" value="${esc(d?.branch_name || '')}"/></div>
+    branches: (d) => `<div class="form-row"><label>Branch Name *</label><input id="mf-branch_name" value="${esc(d?.branch_name || '')}" required/></div>
+    <div class="form-row"><label>Branch Email *</label><input type="email" id="mf-email" value="${esc(d?.email || '')}" placeholder="branch@futureminds.edu.np" required/></div>
     <div class="form-row"><label>Address</label><input id="mf-address" value="${esc(d?.address || '')}"/></div>
     <div class="form-row"><label>Phone</label><input id="mf-phone" value="${esc(d?.phone || '')}"/></div>
     <div class="form-row"><label>Google Maps Link</label><input id="mf-map_link" value="${esc(d?.map_link || '')}"/></div>

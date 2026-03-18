@@ -3,30 +3,75 @@ import { useState } from "react";
 import { Send, MapPin, Phone, Mail, Loader2, CheckCircle } from "lucide-react";
 import SectionHeading from "@/components/SectionHeading";
 import { useToast } from "@/hooks/use-toast";
+import emailjs from "@emailjs/browser";
+import { useEffect } from "react";
+
+interface Branch {
+  id: number;
+  branch_name: string;
+  email: string;
+  phone: string;
+  address: string;
+}
 
 const Contact = () => {
+  const short = (text: string, len: number) => {
+    if (!text) return "";
+    return text.length > len ? text.substring(0, len) + "..." : text;
+  };
+
   const [formType, setFormType] = useState<"inquiry" | "appointment">("inquiry");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const response = await fetch("/api/branches");
+        if (response.ok) {
+          const data = await response.json();
+          // Sort by display_order
+          const sorted = data.sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
+          setBranches(sorted);
+        }
+      } catch (error) {
+        console.error("Failed to fetch branches", error);
+      }
+    };
+    fetchBranches();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
     const form = e.currentTarget;
     const formData = new FormData(form);
+
+    const selectedBranchName = formData.get("branch") as string;
+    const selectedBranch = branches.find(b => b.branch_name === selectedBranchName);
+
+    if (!selectedBranch && branches.length > 0) {
+      setLoading(false);
+      toast({ title: "Error", description: "Please select a branch", variant: "destructive" });
+      return;
+    }
+
     const data = {
       full_name: formData.get("fullName"),
       email: formData.get("email"),
       phone: formData.get("phone"),
-      subject: formType === "appointment" ? formData.get("service") : formData.get("subject"),
+      subject: formType === "appointment" ? "Appointment: " + (formData.get("service") || "Consultation") : formData.get("subject"),
       preferred_date: formData.get("preferredDate") || "",
       service: formData.get("service") || "",
+      branch: selectedBranchName,
       message: formData.get("message"),
       form_type: formType,
+      to_email: selectedBranch?.email || "info@futureminds.edu.np"
     };
 
     try {
+      // 1. Save to database
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -38,17 +83,48 @@ const Contact = () => {
         throw new Error(error.error || "Failed to send message");
       }
 
+      // 2. Send via EmailJS
+      // Using provided credentials:
+      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_4x2s3hs";
+      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_9nbcy9c";
+      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "z_c7eJCMqRndObBEh";
+
+      try {
+        await emailjs.send(
+          serviceId,
+          templateId,
+          {
+            name: data.full_name,
+            email: data.email,
+            phone: data.phone,
+            country: formData.get("subject") || data.service || "N/A",
+            branch: data.branch,
+            message: data.message,
+            to_email: data.to_email
+          },
+          publicKey
+        );
+        toast({
+          title: "Success!",
+          description: "Your message has been received and routed to the " + selectedBranchName + " branch.",
+        });
+      } catch (emailErr) {
+        console.error("EmailJS error:", emailErr);
+        toast({
+          title: "Message Received",
+          description: "Your inquiry has been saved in our system. However, the email notification failed. We will still contact you soon.",
+          variant: "default",
+        });
+      }
+
       setSubmitted(true);
-      toast({
-        title: "Success!",
-        description: "Your message has been received. We will contact you shortly.",
-      });
       form.reset();
       setTimeout(() => setSubmitted(false), 5000);
     } catch (error) {
+      console.error("Submission error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to send message",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
@@ -99,15 +175,24 @@ const Contact = () => {
                     <input name="phone" type="tel" required maxLength={20} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="+977-XXXXXXXXXX" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-1.5">
-                      {formType === "appointment" ? "Preferred Date" : "Subject"}
-                    </label>
-                    {formType === "appointment" ? (
-                      <input name="preferredDate" type="date" required className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                    ) : (
-                      <input name="subject" type="text" required maxLength={200} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="How can we help?" />
-                    )}
+                    <label className="block text-sm font-medium text-foreground mb-1.5">Select Branch</label>
+                    <select name="branch" required className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30">
+                      <option value="">Select a branch</option>
+                      {branches.map(b => (
+                        <option key={b.id} value={b.branch_name}>{b.branch_name}</option>
+                      ))}
+                    </select>
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">
+                    {formType === "appointment" ? "Preferred Date" : "Subject / Preferred Country"}
+                  </label>
+                  {formType === "appointment" ? (
+                    <input name="preferredDate" type="date" required className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  ) : (
+                    <input name="subject" type="text" required maxLength={200} className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="e.g. Study in South Korea" />
+                  )}
                 </div>
                 {formType === "appointment" && (
                   <div>
@@ -149,21 +234,30 @@ const Contact = () => {
 
             {/* Sidebar */}
             <div className="space-y-6">
-              <SectionHeading title="Branch Contacts" centered={false} />
-              {[
-                { branch: "Banepa (Head Office)", phone: "+977-011-660123" },
-                { branch: "Kathmandu", phone: "+977-01-4567890" },
-                { branch: "Pokhara", phone: "+977-061-123456" },
-                { branch: "Seoul", phone: "+82-2-1234-5678" },
-              ].map((b, i) => (
-                <div key={i} className="rounded-xl bg-card p-5 shadow-card border border-border">
-                  <p className="font-semibold text-foreground text-sm mb-2">{b.branch}</p>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="h-3.5 w-3.5 text-primary" />
-                    <span>{b.phone}</span>
+              <SectionHeading title="Our Branches" centered={false} />
+              {branches.length > 0 ? branches.map((b) => (
+                <div key={b.id} className="rounded-xl bg-card p-5 shadow-card border border-border">
+                  <p className="font-semibold text-foreground text-sm mb-2">{b.branch_name}</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Phone className="h-3.5 w-3.5 text-primary" />
+                      <span>{b.phone}</span>
+                    </div>
+                    {b.address && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5 text-primary" />
+                        <span>{short(b.address, 40)}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Mail className="h-3.5 w-3.5 text-primary" />
+                      <span className="truncate">{b.email}</span>
+                    </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="text-sm text-muted-foreground italic">Loading branches...</p>
+              )}
 
               <div className="rounded-xl bg-card p-5 shadow-card border border-border">
                 <p className="font-semibold text-foreground text-sm mb-3">General Contact</p>

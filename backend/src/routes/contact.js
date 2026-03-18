@@ -8,16 +8,17 @@ router.post('/', [
     body('email').isEmail().normalizeEmail(),
     body('message').trim().isLength({ min: 5, max: 2000 }).escape(),
     body('phone').optional().trim().isLength({ max: 30 }).escape(),
+    body('branch').optional().trim().isLength({ max: 200 }).escape(),
     body('subject').optional().trim().isLength({ max: 200 }).escape(),
 ], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
-        const { full_name, email, phone, subject, preferred_date, service, message, form_type } = req.body;
-        console.log(`[Contact] ${form_type || 'inquiry'} from ${full_name}`);
+        const { full_name, email, phone, branch, subject, preferred_date, service, message, form_type } = req.body;
+        console.log(`[Contact] ${form_type || 'inquiry'} from ${full_name} for branch ${branch || 'none'}`);
         await db.run(
-            'INSERT INTO contact_submissions (full_name, email, phone, subject, preferred_date, service, message, form_type) VALUES (?,?,?,?,?,?,?,?)',
-            [full_name, email, phone || '', subject || '', preferred_date || '', service || '', message, form_type || 'inquiry']
+            'INSERT INTO contact_submissions (full_name, email, phone, branch, subject, preferred_date, service, message, form_type) VALUES (?,?,?,?,?,?,?,?,?)',
+            [full_name, email, phone || '', branch || '', subject || '', preferred_date || '', service || '', message, form_type || 'inquiry']
         );
         res.status(201).json({ message: 'Your message has been received. We will contact you shortly.' });
     } catch (err) {

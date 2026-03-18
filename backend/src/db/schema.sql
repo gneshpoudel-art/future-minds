@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS gallery (
 CREATE TABLE IF NOT EXISTS branches (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   branch_name TEXT NOT NULL,
+  email TEXT NOT NULL,
   address TEXT,
   phone TEXT,
   map_link TEXT,
@@ -200,6 +201,7 @@ CREATE TABLE IF NOT EXISTS contact_submissions (
   full_name TEXT NOT NULL,
   email TEXT NOT NULL,
   phone TEXT,
+  branch TEXT,
   subject TEXT,
   preferred_date TEXT,
   service TEXT,
